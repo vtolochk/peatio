@@ -337,7 +337,15 @@ describe Deposit do
       subject.err! StandardError.new "This is an exception"
 
       expect(subject.errored?).to be true
-      expect(subject.error).to eq [{"class"=>"StandardError", "message"=>"This is an exception"}]
+      res = subject.error
+
+      # # For DB which doesnt support JSON field
+      # if res.is_a? String
+      #   res = JSON.parse(res.gsub(/:([A-z]+)/,'"\\1"').gsub('=>', ': '))
+      # end
+
+      expect(res[0]['class']).to eq 'StandardError'
+      expect(res[0]['message']).to eq 'This is an exception'
     end
   end
 end
