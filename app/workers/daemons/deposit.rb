@@ -81,7 +81,7 @@ module Workers
           Rails.logger.warn { "The deposit was spreaded in the next way: #{deposit.spread}"}
         end
 
-        fee_wallet = Wallet.active.fee.find_by(blockchain_key: deposit.currency.blockchain_key)
+        fee_wallet = Wallet.active_retired.fee.find_by(blockchain_key: deposit.currency.blockchain_key)
         unless fee_wallet
           Rails.logger.warn { "Can't find active fee wallet for currency with code: #{deposit.currency_id}."}
           return
@@ -89,7 +89,7 @@ module Workers
 
         transactions = WalletService.new(fee_wallet).deposit_collection_fees!(deposit, deposit.spread_to_transactions)
         deposit.fee_process! if transactions.present?
-        Rails.logger.warn { "The API accepted token deposit collection fee and assigned transaction ID: #{transactions.map(&:as_json)}." }
+        Rails.logger.warn { "The API accepspec/api/v2/account/deposits_spec.rbted token deposit collection fee and assigned transaction ID: #{transactions.map(&:as_json)}." }
       end
     end
   end
