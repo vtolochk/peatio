@@ -109,7 +109,7 @@ class Wallet < ApplicationRecord
       Wallet.active_retired.deposit.joins(:currencies).find_by(currencies: { id: currency_id })
     end
 
-    def active_wallet(currency_id)
+    def active_deposit_wallet(currency_id)
       Wallet.active.deposit.joins(:currencies).find_by(currencies: { id: currency_id })
     end
   end

@@ -138,7 +138,7 @@ module API
       def create_address(address_id, address, currency_id)
         Rails.logger.info { "Address detected: #{address}" }
 
-        payment_address = PaymentAddress.where(address: nil, wallet: Wallet.active_wallet(currency_id))
+        payment_address = PaymentAddress.where(address: nil, wallet: Wallet.active_deposit_wallet(currency_id))
                                         .find { |address| address.details['address_id'] == address_id }
 
         payment_address.update!(address: address) if payment_address.present?
