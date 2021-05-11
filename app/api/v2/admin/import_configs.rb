@@ -6,14 +6,14 @@ module API
     module Admin
       class ImportConfigs < Grape::API
 
-        desc 'Import currency, blockchain and wallet from json file'
+        desc 'Import currencies, blockchains and wallets from json file'
         params do
           requires :file,
                    type: File
         end
         post '/import_configs' do
           API::V2::ImportConfigsHelper.new.process(params)
-          present(result: 'Importing of currency, blockchain and wallet is starting')
+          present(result: 'Importing of currencies, blockchains and wallets is started')
         end
       end
     end

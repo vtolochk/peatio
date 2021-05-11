@@ -18,6 +18,8 @@ module API
               Currency.create!(record) unless Currency.find_by(code: record[:id])
             when "wallets"
               ::Wallet.create!(record) unless ::Wallet.find_by(name: record[:name])
+            else
+              Rails.logger.info { "The #{type} is not supported" }
             end
           rescue StandardError => e
             Rails.logger.error { e.message }
