@@ -12,11 +12,10 @@ module API
                    type: File
         end
         post '/import_configs' do
-          API::V2::ImportConfigHelpers.new.process(params)
+          API::V2::ImportConfigsHelper.new.process(params)
           present(result: 'Importing of currency, blockchain and wallet is starting')
         end
       end
     end
   end
 end
-
