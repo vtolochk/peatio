@@ -4,7 +4,7 @@ module API
   module V2
     class ImportConfigsHelper
       def process(params)
-        JSON.parse(params[:file], :headers => true, quote_empty: false).sort.each do |row|
+        YAML.load(params[:tempfile]).sort.each do |row|
           type = row[0]
           data = row[1]
           next unless type
