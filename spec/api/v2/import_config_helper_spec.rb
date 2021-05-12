@@ -4,7 +4,7 @@ RSpec.describe API::V2::ImportConfigsHelper do
   let(:test_file) { File.read(Rails.root.join('spec', 'resources', 'import_config', file_name)) }
   let(:file_name) { 'data.json' }
 
-  subject(:import_configs) { API::V2::ImportConfigsHelper.new.process({ file: { tempfile: test_file } }) }
+  subject(:import_configs) { API::V2::ImportConfigsHelper.new.process({ file: test_file }) }
 
   it 'create new currency' do
     expect { import_configs }.to change { Currency.count }.by(1)
