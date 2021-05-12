@@ -176,6 +176,10 @@ class Deposit < ApplicationRecord
     self.member = Member.find_by_uid(uid)
   end
 
+  def wallet_state
+    currency.coin? ? PaymentAddress.find_by_address(address).wallet.status : ''
+  end
+
   def as_json_for_event_api
     { tid:                      tid,
       user:                     { uid: member.uid, email: member.email },
@@ -183,7 +187,7 @@ class Deposit < ApplicationRecord
       currency:                 currency_id,
       amount:                   amount.to_s('F'),
       state:                    aasm_state,
-      wallet_state:             PaymentAddress.find_by_address(address).wallet.status,
+      wallet_state:             wallet_state,
       created_at:               created_at.iso8601,
       updated_at:               updated_at.iso8601,
       completed_at:             completed_at&.iso8601,
