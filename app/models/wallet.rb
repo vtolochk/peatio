@@ -155,6 +155,10 @@ class Wallet < ApplicationRecord
     ::WalletService.new(self)
   end
 
+  def gateway_implements?(method_name)
+    service.adapter.class.instance_methods(false).include?(method_name)
+  end
+
   def generate_settings
     results = service.create_address!("#{id}_#{kind}_wallet", {})
     {
