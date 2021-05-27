@@ -43,6 +43,7 @@ class Wallet < ApplicationRecord
 
   validates :name,    presence: true, uniqueness: true
   validates :address, presence: true
+  validate :gateway_wallet_kind_support
 
   validates :status,  inclusion: { in: STATES }
 
@@ -141,6 +142,11 @@ class Wallet < ApplicationRecord
   rescue StandardError => e
     report_exception(e)
     NOT_AVAILABLE
+  end
+
+  def gateway_wallet_kind_support
+    return unless gateway_implements?(:supported_wallet_kinds)
+    errors.add(:gateway, "#{gateway} can't be used as a #{kind} wallet") if service.adapter.supported_wallet_kinds.exclude?(kind)
   end
 
   def to_wallet_api_settings
