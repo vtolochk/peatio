@@ -367,15 +367,15 @@ steps:
     - bin/genversion
 
 # Build and push docker image using ".tags" file.
-- name: docker-build-and-push
-  image: plugins/docker
-  settings:
-    username:
-      from_secret: quay_username
-    password:
-      from_secret: quay_password
-    repo: quay.io/openware/peatio
-    registry: quay.io
+#- name: docker-build-and-push
+#  image: plugins/docker
+#  settings:
+#    username:
+#      from_secret: quay_username
+#    password:
+#      from_secret: quay_password
+#    repo: quay.io/openware/peatio
+#    registry: quay.io
 
 # Redeploy on master.devkube.com
 - name: devkube-redeploy
@@ -426,16 +426,17 @@ steps:
     REPO: openware/assembly-line
     BRANCH: master
     COMPONENT: peatio
+    COMPONENT_SHA: ${DRONE_COMMIT:0:7}
     DRONE_TOKEN:
       from_secret: drone_token
   commands:
-    - COMPONENT_VERSION=$(cat .tags)
-    - "curl -s -XPOST -H \"Authorization: Bearer $DRONE_TOKEN\" -i \"$SERVER/api/repos/$REPO/builds?branch=$BRANCH&ASSEMBLY_COMPONENT_VERSION=$COMPONENT_VERSION&ASSEMBLY_COMPONENT=$COMPONENT\""
+    - "curl -v -s -XPOST -H \"Authorization: Bearer $DRONE_TOKEN\" -i \"$SERVER/api/repos/$REPO/builds?branch=$BRANCH&ASSEMBLY_COMPONENT_SHA=$COMPONENT_SHA&ASSEMBLY_COMPONENT=$COMPONENT\""
   detach: true
   when:
     branch:
       - master
       - "*-stable"
+      - "integration/withdraw-watcher"
 
 trigger:
   event:
