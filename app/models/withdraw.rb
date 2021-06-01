@@ -29,6 +29,7 @@ class Withdraw < ApplicationRecord
 
   belongs_to :currency, required: true
   belongs_to :member, required: true
+  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
 
   # Optional beneficiary association gives ability to support both in-peatio
   # beneficiaries and managed by third party application.
@@ -48,6 +49,9 @@ class Withdraw < ApplicationRecord
             presence: true,
             numericality: { greater_than_or_equal_to: ->(withdraw) { withdraw.currency.min_withdraw_amount }}
 
+  validates :blockchain_key,
+            inclusion: { in: ->(_) { Blockchain.pluck(:key).map(&:to_s) } },
+            if: -> { currency.coin? }
   validate do
     errors.add(:beneficiary, 'not active') if beneficiary.present? && !beneficiary.active? && !aasm_state.to_sym.in?(COMPLETED_STATES)
   end
@@ -113,7 +117,7 @@ class Withdraw < ApplicationRecord
         end
       end
       after_commit do
-        tx = currency.blockchain_api.fetch_transaction(self)
+        tx = blockchain_currency.blockchain_api.fetch_transaction(self)
         if tx.present?
           success! if tx.status.success?
         end
@@ -206,7 +210,7 @@ class Withdraw < ApplicationRecord
   end
 
   def blockchain_api
-    currency.blockchain_api
+    blockchain_currency.blockchain_api
   end
 
   def confirmations

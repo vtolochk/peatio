@@ -104,8 +104,12 @@ class Wallet < ApplicationRecord
         end
     end
 
-    def deposit_wallet(currency_id)
-      Wallet.active.deposit.joins(:currencies).find_by(currencies: { id: currency_id })
+    def deposit_wallet(currency_id, blockchain_key=nil)
+      if blockchain_key
+        Wallet.active.deposit.joins(:currencies).find_by(currencies: { id: currency_id }, blockchain_key: blockchain_key)
+      else
+        Wallet.active.deposit.joins(:currencies).find_by(currencies: { id: currency_id })
+      end
     end
   end
 
