@@ -23,6 +23,14 @@ module API
         )
 
         expose(
+          :blockchain_key,
+          documentation:{
+            type: String,
+            desc: 'Unique key to identify blockchain.'
+          }
+        )
+
+        expose(
           :amount,
           format_with: :decimal,
           documentation: {

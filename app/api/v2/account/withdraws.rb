@@ -16,6 +16,9 @@ module API
                    type: String,
                    values: { value: -> { Currency.visible.codes(bothcase: true) }, message: 'account.currency.doesnt_exist'},
                    desc: 'Currency code.'
+          optional :blockchain_key,
+                   values: { value: -> { ::Blockchain.pluck(:key) }, message: 'account.withdraw.blockchain_key_doesnt_exist' },
+                   desc: 'Blockchain key of the requested withdrawal'
           optional :limit,
                    type: { value: Integer, message: 'account.withdraw.non_integer_limit' },
                    values: { value: 1..100, message: 'account.withdraw.invalid_limit' },
@@ -51,6 +54,7 @@ module API
                       .tap { |q| q.where!(currency: currency) if currency }
                       .tap { |q| q.where!(aasm_state: params[:state]) if params[:state] }
                       .tap { |q| q.where!(rid: params[:rid]) if params[:rid] }
+                      .tap { |q| q.where!(blockchain_key: params[:blockchain_key]) if params[:blockchain_key] }
                       .tap { |q| q.where!('updated_at >= ?', Time.at(params[:time_from])) if params[:time_from].present? }
                       .tap { |q| q.where!('updated_at <= ?', Time.at(params[:time_to])) if params[:time_to].present? }
                       .tap { |q| present paginate(q), with: API::V2::Entities::Withdraw }
@@ -107,18 +111,20 @@ module API
           end
 
           currency = Currency.find(params[:currency])
-
-          unless currency.withdrawal_enabled?
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
+                                                            blockchain_key: beneficiary.blockchain_key)
+          unless blockchain_currency.withdrawal_enabled?
             error!({ errors: ['account.currency.withdrawal_disabled'] }, 422)
           end
 
           # TODO: Delete subclasses from Deposit and Withdraw
           withdraw = "withdraws/#{currency.type}".camelize.constantize.new \
-            beneficiary: beneficiary,
-            sum:         params[:amount],
-            member:      current_user,
-            currency:    currency,
-            note:        params[:note]
+            beneficiary:    beneficiary,
+            sum:            params[:amount],
+            member:         current_user,
+            currency:       currency,
+            note:           params[:note],
+            blockchain_key: beneficiary.blockchain_key
           withdraw.save!
           withdraw.with_lock { withdraw.accept! }
           present withdraw, with: API::V2::Entities::Withdraw

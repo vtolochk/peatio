@@ -18,6 +18,8 @@ class Deposit < ApplicationRecord
 
   belongs_to :currency, required: true
   belongs_to :member, required: true
+  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
+  belongs_to :blockchain_currency, foreign_key: %i[blockchain_key currency_id], primary_key: %i[blockchain_key currency_id]
 
   acts_as_eventable prefix: 'deposit', on: %i[create update]
 
@@ -28,8 +30,12 @@ class Deposit < ApplicationRecord
   validates :amount,
             numericality: {
               greater_than_or_equal_to:
-                -> (deposit){ deposit.currency.min_deposit_amount }
+                -> (deposit){ deposit.blockchain_currency.min_deposit_amount }
             }, on: :create
+
+  validates :blockchain_key,
+            inclusion: { in: ->(_) { Blockchain.pluck(:key).map(&:to_s) } },
+            if: -> { currency.coin? }
 
   scope :recent, -> { order(id: :desc) }
 
@@ -129,7 +135,7 @@ class Deposit < ApplicationRecord
   end
 
   def blockchain_api
-    currency.blockchain_api
+    blockchain.blockchain_api
   end
 
   def confirmations

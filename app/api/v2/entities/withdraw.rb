@@ -31,6 +31,14 @@ module API
         ) { |w| w.currency.fiat? ? :fiat : :coin }
 
         expose(
+          :blockchain_key,
+          documentation:{
+            type: String,
+            desc: 'Unique key to identify blockchain.'
+          }
+        )
+
+        expose(
           :sum,
           as: :amount,
           documentation: {
