@@ -214,13 +214,13 @@ class Member < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20210721093857
+# Schema version: 20210609094033
 #
 # Table name: members
 #
 #  id         :bigint           not null, primary key
 #  uid        :string(32)       not null
-#  email      :string(255)
+#  email      :string(255)      not null
 #  level      :integer          not null
 #  role       :string(16)       not null
 #  group      :string(32)       default("vip-0"), not null

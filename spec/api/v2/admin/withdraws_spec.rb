@@ -37,6 +37,7 @@ describe API::V2::Admin::Withdraws, type: :request do
       expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
       expect(actual.map { |a| a['currency'] }).to match_array expected.map(&:currency_id)
       expect(actual.map { |a| a['member'] }).to match_array expected.map(&:member_id)
+      expect(actual.map { |a| a['blockchain_key'] }).to match_array expected.map(&:blockchain_key)
       expect(actual.map { |a| a['type'] }).to match_array(expected.map { |d| d.currency.coin? ? 'coin' : 'fiat' })
       expect(actual.map { |a| a['uid'] }).to match_array(expected.map { |d| d.member.uid })
       expect(actual.map { |a| a['email'] }).to match_array(expected.map { |d| d.member.email })
@@ -83,6 +84,7 @@ describe API::V2::Admin::Withdraws, type: :request do
         expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
         expect(actual.map { |a| a['currency'] }).to match_array expected.map(&:currency_id)
         expect(actual.map { |a| a['member'] }).to all eq level_3_member.id
+        expect(actual.map { |a| a['blockchain_key'] }).to match_array expected.map(&:blockchain_key)
         expect(actual.map { |a| a['type'] }).to match_array(expected.map { |d| d.currency.coin? ? 'coin' : 'fiat' })
         expect(actual.map { |a| a['uid'] }).to match_array(expected.map { |d| d.member.uid })
         expect(actual.map { |a| a['email'] }).to match_array(expected.map { |d| d.member.email })
@@ -98,6 +100,7 @@ describe API::V2::Admin::Withdraws, type: :request do
         expect(actual.length).to eq expected.count
         expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
         expect(actual.map { |a| a['uid'] }).to match_array(expected.map { |d| d.member.uid })
+        expect(actual.map { |a| a['blockchain_key'] }).to match_array expected.map(&:blockchain_key)
       end
 
       it 'by multiple states' do
@@ -110,6 +113,7 @@ describe API::V2::Admin::Withdraws, type: :request do
         expect(actual.length).to eq expected.count
         expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
         expect(actual.map { |a| a['uid'] }).to match_array(expected.map { |d| d.member.uid })
+        expect(actual.map { |a| a['blockchain_key'] }).to match_array(expected.map { |d| d.blockchain_key })
       end
 
       it 'by type' do
@@ -122,6 +126,7 @@ describe API::V2::Admin::Withdraws, type: :request do
         expect(actual.map { |a| a['state'] }).to match_array expected.map(&:aasm_state)
         expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
         expect(actual.map { |a| a['currency'] }).to match_array expected.map(&:currency_id)
+        expect(actual.map { |a| a['blockchain_key'] }).to match_array expected.map(&:blockchain_key)
         expect(actual.map { |a| a['member'] }).to match_array expected.map(&:member_id)
         expect(actual.map { |a| a['type'] }).to all eq 'coin'
       end
@@ -136,8 +141,24 @@ describe API::V2::Admin::Withdraws, type: :request do
         expect(actual.first['state']).to eq expected.aasm_state
         expect(actual.first['id']).to eq expected.id
         expect(actual.first['currency']).to eq expected.currency_id
+        expect(actual.first['blockchain_key']).to eq expected.blockchain_key
         expect(actual.first['member']).to eq expected.member_id
         expect(actual.first['type']).to eq 'coin'
+      end
+
+      it 'by blockchain_key' do
+        api_get url, token: token, params: { blockchain_key: 'btc-testnet' }
+
+        actual = JSON.parse(response.body)
+        expected = Withdraw.where(type: 'Withdraws::Coin')
+
+        expect(actual.length).to eq expected.length
+        expect(actual.map { |a| a['state'] }).to match_array expected.map(&:aasm_state)
+        expect(actual.map { |a| a['id'] }).to match_array expected.map(&:id)
+        expect(actual.map { |a| a['currency'] }).to match_array expected.map(&:currency_id)
+        expect(actual.map { |a| a['blockchain_key'] }).to match_array expected.map(&:blockchain_key)
+        expect(actual.map { |a| a['member'] }).to match_array expected.map(&:member_id)
+        expect(actual.map { |a| a['type'] }).to all eq 'coin'
       end
 
       it 'by wallet_type' do
