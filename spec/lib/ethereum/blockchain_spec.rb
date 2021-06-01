@@ -188,6 +188,7 @@ describe Ethereum::Eth::Blockchain do
       subject { blockchain.fetch_block!(start_block) }
 
       it 'builds expected number of transactions' do
+        binding.pry
         subject.transactions.each_with_index do |t, i|
           expect(t.as_json).to eq(expected_transactions[i].as_json)
         end

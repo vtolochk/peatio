@@ -80,6 +80,7 @@ module Ethereum
 
       transaction.amount = amount
       transaction.options = options
+      transaction.fee = fees
 
       [create_eth_transaction!(transaction)]
     rescue Ethereum::Client::Error => e
@@ -142,6 +143,7 @@ module Ethereum
       # Make sure that we return currency_id
       transaction.currency_id = 'eth' if transaction.currency_id.blank?
       transaction.amount = convert_from_base_unit(amount)
+      transaction.fee = convert_from_base_unit(options.fetch(:gas_limit).to_i * options.fetch(:gas_price).to_i)
       transaction.hash = normalize_txid(txid)
       transaction.options = options
       transaction

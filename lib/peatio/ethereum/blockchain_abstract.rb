@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
+require 'pry-byebug'
+
 module Ethereum
   class BlockchainAbstract < Peatio::Blockchain::Abstract
-
     UndefinedCurrencyError = Class.new(StandardError)
 
     TOKEN_EVENT_IDENTIFIER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
@@ -45,11 +48,11 @@ module Ethereum
     end
 
     def fetch_block!(block_number)
+      binding.pry
       block_json = client.json_rpc(:eth_getBlockByNumber, ["0x#{block_number.to_s(16)}", true])
 
-      if block_json.blank? || block_json['transactions'].blank?
-        return Peatio::Block.new(block_number, [])
-      end
+      return Peatio::Block.new(block_number, []) if block_json.blank? || block_json['transactions'].blank?
+
       block_json.fetch('transactions').each_with_object([]) do |tx, block_arr|
         if tx.fetch('input').hex <= 0
           next if invalid_eth_transaction?(tx)
@@ -92,7 +95,6 @@ module Ethereum
           tx = client.json_rpc(:eth_getTransactionReceipt, [tx_id])
           next if tx.nil? || tx.fetch('to').blank?
         end
-
         txs = build_transactions(tx).map do |ntx|
           Peatio::Transaction.new(ntx)
         end
@@ -121,7 +123,7 @@ module Ethereum
               .to_d
               .yield_self { |amount| convert_from_base_unit(amount, currency) }
       else
-        raise Peatio::Blockchain::ClientError.new("Currency #{currency_id} doesn't have option #{contract_address_option}")
+        raise Peatio::Blockchain::ClientError, "Currency #{currency_id} doesn't have option #{contract_address_option}"
       end
     rescue Ethereum::Client::Error => e
       raise Peatio::Blockchain::ClientError, e
@@ -141,11 +143,11 @@ module Ethereum
           status: transaction_status(txn_receipt)
         }
       else
-        if transaction.txout.present?
-          txn_json = txn_receipt.fetch('logs').find { |log| log['logIndex'].to_i(16) == transaction.txout }
-        else
-          txn_json = txn_receipt.fetch('logs').first
-        end
+        txn_json = if transaction.txout.present?
+                     txn_receipt.fetch('logs').find { |log| log['logIndex'].to_i(16) == transaction.txout }
+                   else
+                     txn_receipt.fetch('logs').first
+                   end
         attributes = {
           amount: convert_from_base_unit(txn_json.fetch('data').hex, currency),
           to_address: normalize_address('0x' + txn_json.fetch('topics').last[-40..-1]),
@@ -193,14 +195,15 @@ module Ethereum
     def build_eth_transactions(block_txn)
       [
         {
-          hash:           normalize_txid(block_txn.fetch('hash')),
-          amount:         convert_from_base_unit(block_txn.fetch('value').hex, @eth),
-          from_addresses: [normalize_address(block_txn['from'])],
-          to_address:     normalize_address(block_txn['to']),
-          txout:          block_txn.fetch('transactionIndex').to_i(16),
-          block_number:   block_txn.fetch('blockNumber').to_i(16),
-          currency_id:    @eth.fetch(:id),
-          status:         transaction_status(block_txn)
+          hash:             normalize_txid(block_txn.fetch('hash')),
+          amount:           convert_from_base_unit(block_txn.fetch('value').hex, @eth),
+          from_addresses:   [normalize_address(block_txn['from'])],
+          to_address:       normalize_address(block_txn['to']),
+          txout:            block_txn.fetch('transactionIndex').to_i(16),
+          block_number:     block_txn.fetch('blockNumber').to_i(16),
+          currency_id:      @eth.fetch(:id),
+          fee_currency_id:  @eth.fetch(:id),
+          status:           transaction_status(block_txn)
         }
       ]
     end
@@ -225,27 +228,30 @@ module Ethereum
         destination_address = normalize_address('0x' + log.fetch('topics').last[-40..-1])
 
         currencies.each do |currency|
-          formatted_txs << { hash:            normalize_txid(txn_receipt.fetch('transactionHash')),
-                             amount:          convert_from_base_unit(log.fetch('data').hex, currency),
-                             from_addresses:  [normalize_address(txn_receipt['from'])],
-                             to_address:      destination_address,
-                             txout:           log['logIndex'].to_i(16),
-                             block_number:    txn_receipt.fetch('blockNumber').to_i(16),
-                             currency_id:     currency.fetch(:id),
-                             status:          transaction_status(txn_receipt) }
+          formatted_txs << { hash: normalize_txid(txn_receipt.fetch('transactionHash')),
+                             amount: convert_from_base_unit(log.fetch('data').hex, currency),
+                             fee: convert_from_base_unit(txn_receipt.fetch('gasUsed').hex, currency),
+                             from_addresses: [normalize_address(txn_receipt['from'])],
+                             to_address: destination_address,
+                             txout: log['logIndex'].to_i(16),
+                             block_number: txn_receipt.fetch('blockNumber').to_i(16),
+                             currency_id: currency.fetch(:id),
+                             fee_currency_id:    @eth.fetch(:id),
+                             status: transaction_status(txn_receipt) }
         end
       end
     end
 
+    # What is the point?
     def build_invalid_erc20_transaction(txn_receipt)
       currencies = @erc20.select { |c| c.dig(:options, contract_address_option) == txn_receipt.fetch('to') }
       return if currencies.blank?
 
       currencies.each_with_object([]) do |currency, invalid_txs|
-        invalid_txs << { hash:         normalize_txid(txn_receipt.fetch('transactionHash')),
+        invalid_txs << { hash: normalize_txid(txn_receipt.fetch('transactionHash')),
                          block_number: txn_receipt.fetch('blockNumber').to_i(16),
-                         currency_id:  currency.fetch(:id),
-                         status:       transaction_status(txn_receipt) }
+                         currency_id: currency.fetch(:id),
+                         status: transaction_status(txn_receipt) }
       end
     end
 

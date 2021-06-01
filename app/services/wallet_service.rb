@@ -78,7 +78,7 @@ class WalletService
       # In #spread_deposit valid transactions saved with pending state
       if transaction.status.pending?
         transaction = @adapter.create_transaction!(transaction, subtract_fee: true)
-        save_transaction(transaction.as_json.merge(from_address: deposit.address), deposit) if transaction.present?
+        save_transaction(transaction.as_json.merge(from_address: deposit.address, kind: 'tx', blockhain_key: deposit.currency.blockchain.key), deposit) if transaction.present?
       end
       transaction
     end
@@ -118,7 +118,7 @@ class WalletService
 
       deposit.update(spread: updated_spread)
 
-      transactions.each { |t| save_transaction(t.as_json.merge(from_address: @wallet.address), deposit) }
+      transactions.each { |t| save_transaction(t.as_json.merge(from_address: @wallet.address, kind: 'tx_prebuild', blockchain_key: deposit.currency.blockchain.key), deposit) }
     end
     transactions
   end
