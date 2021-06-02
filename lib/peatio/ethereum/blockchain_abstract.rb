@@ -48,7 +48,6 @@ module Ethereum
     end
 
     def fetch_block!(block_number)
-      binding.pry
       block_json = client.json_rpc(:eth_getBlockByNumber, ["0x#{block_number.to_s(16)}", true])
 
       return Peatio::Block.new(block_number, []) if block_json.blank? || block_json['transactions'].blank?

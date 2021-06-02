@@ -48,15 +48,14 @@ class BlockchainService
   end
 
   def process_block(block_number)
-    binding.pry
     block = @adapter.fetch_block!(block_number)
-    deposits = filter_deposits(block)
+    deposits = filter_deposit_txs(block)
     withdrawals = filter_withdrawals(block)
-    # TODO: Process Transactions with `pending` status
+    process_pending_deposit_txs(deposits[:existing_deposits_blockchain_txs], deposits[:existing_deposits_db_txs])
 
     accepted_deposits = []
     ActiveRecord::Base.transaction do
-      accepted_deposits = deposits.map(&method(:update_or_create_deposit)).compact
+      accepted_deposits = deposits[:new_deposits_blockchain_txs].map(&method(:update_or_create_deposit)).compact
       withdrawals.each(&method(:update_withdrawal))
     end
     accepted_deposits.each(&:process!)
@@ -79,6 +78,41 @@ class BlockchainService
   end
 
   private
+  # Filters deposit, fee and deposit_collection txs
+  # This method is so complicated to reduce amount of database interactions during deposit processing
+  def filter_deposit_txs(block)
+    # Filter transaction source/destination addresses
+    addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
+    Wallet.hot.with_currency(@currencies.codes).pluck(:address).map do |addr|
+      addresses << addr
+    end
+
+    # Select transactions, that are related to the platform
+    deposit_related_txs = block.select { |transaction| transaction.to_address.in?(addresses) }
+
+    # I'm not sure that selecting only pending txs is safe
+    # Select pending transactions in database
+    existing_db_txs = Transaction.pending.where(txid: deposit_related_txs.map(&:to_address))
+    existing_db_txs_ids = existing_db_txs.pluck(:txid)
+
+    # Partition returns two arrays, the first containing the elements of enum
+    # for which the block evaluates to true, the second containing the rest.
+    existing_deposits_txs, new_deposits_txs = deposit_related_txs.partition do |tx|
+      tx.hash.in?(existing_db_txs_ids)
+    end
+
+    {
+      new_deposits_blockchain_txs: new_deposits_txs,
+      existing_deposits_blockchain_txs: existing_deposits_txs,
+      existing_deposits_db_txs: existing_db_txs
+    }
+  end
+
+  def filter_withdrawals(block)
+    # TODO: Process addresses in batch in case of huge number of confirming withdrawals.
+    withdraw_txids = Withdraws::Coin.confirming.where(currency: @currencies).pluck(:txid)
+    block.select { |transaction| transaction.hash.in?(withdraw_txids) }
+  end
 
   # Deposit in state processing
   # There is no Transaction yet
@@ -95,18 +129,16 @@ class BlockchainService
   # Deposit in state collecting
   # check tx state
   # if succeed change state to collected and change state of db_tx to succeed
-  def process_pending_deposit_txs(deposit_txs)
-    # add select by blockchain_key
-    db_txs = Transaction.where(txid: deposit_txs.map(&:hash), reference_type: Deposit, status: 'pending')
-
+  def process_pending_deposit_txs(block_deposit_txs, db_txs)
     db_txs.each do |db_tx|
-      deposit_tx = deposit_txs.find { |tx| tx if db_tx.txid == tx.hash }
+      block_deposit_tx = block_deposit_txs.find { |tx| tx if db_tx.txid == tx.hash }
+      next unless block_deposit_tx
+
       deposit = db_txs.reference
-
-      tx = adapter.fetch_transaction(tx) if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
-
       next unless deposit.fee_collecting? || deposit.collecting?
 
+      tx = adapter.fetch_transaction(tx) if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
+      next unless tx.status.success?
       deposit_tx.fee = tx.fee
 
       if tx.status == 'success'
@@ -117,20 +149,7 @@ class BlockchainService
         deposit_tx.fail!
         deposit.err! 'Fee collection transaction failed'
       end
-
-      next
     end
-  end
-
-  def filter_deposits(block)
-    addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
-    block.select { |transaction| transaction.to_address.in?(addresses) }
-  end
-
-  def filter_withdrawals(block)
-    # TODO: Process addresses in batch in case of huge number of confirming withdrawals.
-    withdraw_txids = Withdraws::Coin.confirming.where(currency: @currencies).pluck(:txid)
-    block.select { |transaction| transaction.hash.in?(withdraw_txids) }
   end
 
   def update_or_create_deposit(transaction)
@@ -153,22 +172,11 @@ class BlockchainService
     address = PaymentAddress.find_by(wallet: Wallet.deposit_wallet(transaction.currency_id), address: transaction.to_address)
     return if address.blank?
 
-    # Skip deposit tx if there is tx for deposit collection process
-    # TODO: select only pending transactions
-    tx_collect = Transaction.find_by(txid: transaction.hash, reference_type: 'Deposit', status: 'pending')
-    # ????? Maybe we don't need it
-    if tx_collect.present?
-      tx_collect.fee = transaction.fee
-      tx_collect.save!
-
-      tx_collect.success!
-      return
-    end
-
     if transaction.from_addresses.blank? && adapter.respond_to?(:transaction_sources)
       transaction.from_addresses = adapter.transaction_sources(transaction)
     end
 
+    # Update will happen in case of block rescan?
     deposit =
       Deposits::Coin.find_or_create_by!(
         currency_id: transaction.currency_id,
