@@ -72,7 +72,7 @@ class BlockchainCurrency < ApplicationRecord
 
   # == Class Methods ========================================================
   # == Instance Methods =====================================================
-  delegate :explorer_transaction, :explorer_address, :blockchain_api, to: :blockchain
+  delegate :explorer_transaction, :explorer_address, :blockchain_api, :description, :warning, :protocol, to: :blockchain
 
   def initialize_defaults
     self.options = {} if options.blank?

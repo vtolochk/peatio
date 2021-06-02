@@ -94,6 +94,12 @@ module API
                      desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:explorer_transaction][:desc] }
             optional :explorer_address,
                      desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:explorer_address][:desc] }
+            optional :warning,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:warning][:desc] }
+            optional :protocol,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:protocol][:desc] }
+            optional :description,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:description][:desc] }
             optional :server,
                      regexp: { value: URI::regexp, message: 'admin.blockchain.invalid_server' },
                      desc: -> { 'Blockchain server url' }
@@ -149,6 +155,12 @@ module API
                      desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:explorer_transaction][:desc] }
             optional :explorer_address,
                      desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:explorer_address][:desc] }
+            optional :warning,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:warning][:desc] }
+            optional :protocol,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:protocol][:desc] }
+            optional :description,
+                     desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:description][:desc] }
             optional :status,
                      values: { value: %w(active disabled), message: 'admin.blockchain.invalid_status' },
                      desc: -> { API::V2::Admin::Entities::Blockchain.documentation[:status][:desc] }

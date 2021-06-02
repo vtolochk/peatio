@@ -134,6 +134,8 @@ class Deposit < ApplicationRecord
     true
   end
 
+  delegate :protocol, to: :blockchain
+
   def blockchain_api
     blockchain.blockchain_api
   end

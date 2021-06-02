@@ -31,6 +31,14 @@ module API
         )
 
         expose(
+          :protocol,
+          documentation: {
+            desc: 'Blockchain protocol',
+          },
+          if: -> (deposit){ deposit.currency.coin? }
+        )
+
+        expose(
           :amount,
           format_with: :decimal,
           documentation: {

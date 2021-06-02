@@ -38,6 +38,15 @@ module API
           }
         )
 
+
+        expose(
+          :protocol,
+          documentation: {
+            desc: 'Blockchain protocol',
+          },
+          if: -> (withdraw){ withdraw.currency.coin? }
+        )
+
         expose(
           :sum,
           as: :amount,

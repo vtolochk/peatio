@@ -95,7 +95,7 @@ module API
         expose(
           :explorer_transaction,
           documentation: {
-            desc: 'Blockchain currency transaction exprorer url template',
+            desc: 'Blockchain transaction exprorer url template',
             example: 'https://testnet.blockchain.info/tx/'
           },
           if: -> (blockchain_currency){ blockchain_currency.currency.coin? }
@@ -104,8 +104,32 @@ module API
         expose(
           :explorer_address,
           documentation: {
-            desc: 'Blockchain currency address exprorer url template',
+            desc: 'Blockchain address exprorer url template',
             example: 'https://testnet.blockchain.info/address/'
+          },
+          if: -> (blockchain_currency){ blockchain_currency.currency.coin? }
+        )
+
+        expose(
+          :description,
+          documentation: {
+            desc: 'Blockchain description',
+          },
+          if: -> (blockchain_currency){ blockchain_currency.currency.coin? }
+        )
+
+        expose(
+          :warning,
+          documentation: {
+            desc: 'Blockchain warning',
+          },
+          if: -> (blockchain_currency){ blockchain_currency.currency.coin? }
+        )
+
+        expose(
+          :protocol,
+          documentation: {
+            desc: 'Blockchain protocol',
           },
           if: -> (blockchain_currency){ blockchain_currency.currency.coin? }
         )

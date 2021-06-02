@@ -70,7 +70,7 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
   end
 
   create_table "blockchain_currencies", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.string "currency_id"
+    t.string "currency_id", null: false
     t.string "blockchain_key"
     t.decimal "deposit_fee", precision: 32, scale: 16, default: "0.0", null: false
     t.decimal "min_deposit_amount", precision: 32, scale: 16, default: "0.0", null: false
@@ -78,10 +78,11 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
     t.decimal "withdraw_fee", precision: 32, scale: 16, default: "0.0", null: false
     t.decimal "min_withdraw_amount", precision: 32, scale: 16, default: "0.0", null: false
     t.decimal "withdraw_limit_24h", precision: 32, scale: 16, default: "0.0", null: false
+    t.decimal "withdraw_limit_72h", precision: 32, scale: 16, default: "0.0", null: false
     t.boolean "deposit_enabled", default: true, null: false
     t.boolean "withdrawal_enabled", default: true, null: false
     t.bigint "base_factor", default: 1, null: false
-    t.string "status", limit: 32, null: false
+    t.string "status", limit: 32, default: "enabled", null: false
     t.json "options"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -93,7 +94,7 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
     t.string "client", null: false
     t.string "server"
     t.bigint "height", null: false
-    t.string "description"
+    t.text "description"
     t.string "warning"
     t.string "protocol"
     t.string "explorer_address"
