@@ -105,7 +105,7 @@ module API
           },
           if: -> (currency){ currency.coin? }
         ) do |c|
-          c.blockchain_currencies.visible
+          c.blockchain_currencies
         end
       end
     end

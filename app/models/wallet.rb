@@ -113,6 +113,8 @@ class Wallet < ApplicationRecord
     end
   end
 
+  delegate :protocol, to: :blockchain
+
   def current_balance(currency = nil)
     if currency.present?
       WalletService.new(self).load_balance!(currency)
