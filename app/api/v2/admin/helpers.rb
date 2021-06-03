@@ -53,6 +53,43 @@ module API
           end
         end
 
+        class WalletOverviewBuilder
+          def initialize(currencies, blockchain_currencies)
+            @currencies = currencies
+            @blockchain_currencies = blockchain_currencies
+          end
+
+          def info
+            result = []
+            # Select from active currencies ordered by position
+            @currencies.ordered.each_with_index do |currency, index|
+              result[index] = { id: index + 1, name: currency.name, code: currency.code }
+
+              # Select all currency active networks
+              @blockchain_currencies.where(currency_id: currency).each do |b_currency|
+                result[index][:blockhains].push({ blockchain_key: b_currency.blockchain_key,
+                                                  blockchain_name: b_currency.blockchain.name})
+                # Select wallets linked to currency
+                wallet_ids = CurrencyWallet.where(currency_id: currency.id).pluck(:wallet_id)
+                Wallet.active.where(id: wallet_ids, blockchain_key: b_currency.blockchain_key).each do |w|
+                  begin
+                    result[index][:blockhains][:balances].push({ kind: w.kind, balance: w.current_balance(currency) })
+                  rescue StandardError
+                    # In case of configuration problem system will return 0 balance
+                    result[index][:blockhains][:balances].push({ kind: w.kind, balance: 0})
+                  end
+                end
+              end
+
+              # Calculate total balance of existing wallets
+              total = result[index][:blockhains][:balances].inject(0) {|sum, hash| sum + hash[:balance]}
+              result[index].merge!(total: total, estimated_total: currency.price * total)
+            end
+
+            result
+          end
+        end
+
         params :currency_type do
           optional :type,
                    type: String,

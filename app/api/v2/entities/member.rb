@@ -22,6 +22,14 @@ module API
         )
 
         expose(
+          :group,
+          documentation: {
+            type: String,
+            desc: 'Member\'s group.'
+          }
+        )
+
+        expose(
           :accounts,
           using: API::V2::Entities::Account,
           documentation: {

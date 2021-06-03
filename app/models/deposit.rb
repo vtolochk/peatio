@@ -3,6 +3,7 @@
 
 class Deposit < ApplicationRecord
   STATES = %i[submitted canceled rejected accepted collected skipped processing fee_processing].freeze
+  COMPLETED_STATES = %i[collected rejected canceled refunding].freeze
 
   serialize :error, JSON unless Rails.configuration.database_support_json
   serialize :spread, Array
@@ -41,6 +42,8 @@ class Deposit < ApplicationRecord
 
   before_validation { self.completed_at ||= Time.current if completed? }
   before_validation { self.transfer_type ||= currency.coin? ? 'crypto' : 'fiat' }
+
+  scope :processing, -> { where.not(aasm_state: COMPLETED_STATES) }
 
   aasm whiny_transitions: false do
     state :submitted, initial: true

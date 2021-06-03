@@ -59,8 +59,7 @@ class Currency < ApplicationRecord
   # == Scopes ===============================================================
 
   scope :visible, -> { where(status: :enabled) }
-  scope :deposit_enabled, -> { where(deposit_enabled: true) }
-  scope :withdrawal_enabled, -> { where(withdrawal_enabled: true) }
+  scope :active, -> { where(status: %i[enabled hidden]) }
   scope :ordered, -> { order(position: :asc) }
   scope :coins, -> { where(type: :coin) }
   scope :fiats, -> { where(type: :fiat) }
