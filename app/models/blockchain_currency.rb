@@ -56,6 +56,7 @@ class BlockchainCurrency < ApplicationRecord
   # == Scopes ===============================================================
 
   scope :visible, -> { where(status: :enabled) }
+  scope :active, -> { where(status: %i[enabled hidden]) }
   scope :deposit_enabled, -> { where(deposit_enabled: true) }
   scope :withdrawal_enabled, -> { where(withdrawal_enabled: true) }
 
