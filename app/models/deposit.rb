@@ -3,7 +3,6 @@
 
 class Deposit < ApplicationRecord
   STATES = %i[submitted canceled rejected accepted collected skipped processing fee_processing].freeze
-  COMPLETED_STATES = %i[collected rejected canceled refunding].freeze
 
   serialize :error, JSON unless Rails.configuration.database_support_json
   serialize :spread, Array
@@ -20,7 +19,8 @@ class Deposit < ApplicationRecord
   belongs_to :currency, required: true
   belongs_to :member, required: true
   belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
-  belongs_to :blockchain_currency, foreign_key: %i[blockchain_key currency_id], primary_key: %i[blockchain_key currency_id]
+  belongs_to :blockchain_coin_currency, -> { where.not(blockchain_key: nil) }, class_name: 'BlockchainCurrency', foreign_key: %i[blockchain_key currency_id], primary_key: %i[blockchain_key currency_id]
+  belongs_to :blockchain_fiat_currency, -> { where(blockchain_key: nil) }, class_name: 'BlockchainCurrency', foreign_key: :currency_id, primary_key: :currency_id
 
   acts_as_eventable prefix: 'deposit', on: %i[create update]
 
@@ -31,19 +31,15 @@ class Deposit < ApplicationRecord
   validates :amount,
             numericality: {
               greater_than_or_equal_to:
-                -> (deposit){ deposit.blockchain_currency.min_deposit_amount }
+                -> (deposit) {
+                  deposit.currency.coin? ? deposit.blockchain_coin_currency.min_deposit_amount : deposit.blockchain_fiat_currency.min_deposit_amount
+                }
             }, on: :create
-
-  validates :blockchain_key,
-            inclusion: { in: ->(_) { Blockchain.pluck(:key).map(&:to_s) } },
-            if: -> { currency.coin? }
 
   scope :recent, -> { order(id: :desc) }
 
   before_validation { self.completed_at ||= Time.current if completed? }
   before_validation { self.transfer_type ||= currency.coin? ? 'crypto' : 'fiat' }
-
-  scope :processing, -> { where.not(aasm_state: COMPLETED_STATES) }
 
   aasm whiny_transitions: false do
     state :submitted, initial: true
@@ -203,6 +199,10 @@ class Deposit < ApplicationRecord
 
   def completed?
     !submitted?
+  end
+
+  def blockchain_currency
+    currency.coin? ? blockchain_coin_currency : blockchain_fiat_currency
   end
 
   private

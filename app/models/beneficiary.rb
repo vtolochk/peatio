@@ -79,7 +79,7 @@ class Beneficiary < ApplicationRecord
 
   validates :blockchain_key,
             inclusion: { in: ->(_) { Blockchain.pluck(:key).map(&:to_s) } },
-            if: -> { currency.coin? }
+            if: -> { currency.present? && currency.coin?  }
 
   # Validates that data contains address field which is required for coin.
   validate if: ->(b) { b.currency.present? && b.currency.coin? } do

@@ -6,6 +6,7 @@ class BlockchainService
 
   def initialize(blockchain)
     @blockchain = blockchain
+    # TODO check if [] array
     @blockchain_currencies = blockchain.blockchain_currencies.deposit_enabled
     @currencies = @blockchain_currencies.pluck(:currency_id).uniq
     @whitelisted_addresses = blockchain.whitelisted_smart_contracts.active

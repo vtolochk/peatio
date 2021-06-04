@@ -72,12 +72,12 @@ module API
                 # Select wallets linked to currency
                 wallet_ids = CurrencyWallet.where(currency_id: currency.id).pluck(:wallet_id)
                 Wallet.active.where(id: wallet_ids, blockchain_key: b_currency.blockchain_key).each do |w|
-                  begin
-                    result[index][:blockhains][:balances].push({ kind: w.kind, balance: w.current_balance(currency) })
-                  rescue StandardError
-                    # In case of configuration problem system will return 0 balance
-                    result[index][:blockhains][:balances].push({ kind: w.kind, balance: 0})
-                  end
+                  balance = w.balance[currency.id]
+                  current_balance = balance == Wallet::NOT_AVAILABLE ? 0 : balance.to_d
+                  wallet_obj = { kind: w.kind, balance: current_balance }
+                  wallet_obj.merge!(updated_at: w.updated_at) if w.updated_at < 5.minute.ago
+
+                  result[index][:blockhains][:balances].push(wallet_obj)
                 end
               end
 
