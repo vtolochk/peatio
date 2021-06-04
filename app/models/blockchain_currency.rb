@@ -31,7 +31,7 @@ class BlockchainCurrency < ApplicationRecord
   # == Relationships ========================================================
 
   belongs_to :currency, required: true
-  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key, required: true
+  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
 
   # == Validations ==========================================================
 

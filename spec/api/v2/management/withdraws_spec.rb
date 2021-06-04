@@ -220,9 +220,9 @@ describe API::V2::Management::Withdraws, type: :request do
     end
 
     context 'extremely precise values' do
-      before { Currency.any_instance.stubs(:withdraw_fee).returns(BigDecimal(0)) }
+      before { BlockchainCurrency.any_instance.stubs(:withdraw_fee).returns(BigDecimal(0)) }
       before { Currency.any_instance.stubs(:precision).returns(16) }
-      before { Currency.any_instance.stubs(:subunits).returns(16) }
+      before { BlockchainCurrency.any_instance.stubs(:subunits).returns(16) }
       it 'keeps precision for amount' do
         data.merge!(amount: '0.0000000123456789')
         request

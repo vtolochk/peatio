@@ -16,8 +16,11 @@ class PaymentAddress < ApplicationRecord
 
   belongs_to :wallet
   belongs_to :member
-  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key, required: true
-  belongs_to :blockchain_currency, foreign_key: :blockchain_currency, primary_key: %i[blockchain_key currency_id]
+  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
+
+  before_validation do
+    self.blockchain_key = wallet.blockchain_key
+  end
 
   before_validation do
     next if blockchain_api&.case_sensitive?
@@ -29,9 +32,6 @@ class PaymentAddress < ApplicationRecord
     self.address = CashAddr::Converter.to_cash_address(address)
   end
 
-  before_create do
-    self.blockchain_key = wallet.blockchain unless blockchain_key
-  end
 
   def blockchain_api
     BlockchainService.new(blockchain)

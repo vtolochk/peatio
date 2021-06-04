@@ -28,18 +28,6 @@ module API
             desc: 'Member\'s group.'
           }
         )
-
-        expose(
-          :accounts,
-          using: API::V2::Entities::Account,
-          documentation: {
-            type: 'API::V2::Entities::Account',
-            is_array: true,
-            desc: 'Member accounts.'
-          }
-        ) do |m|
-            m.accounts.includes(:currency)
-          end
       end
     end
   end

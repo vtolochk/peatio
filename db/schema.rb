@@ -95,7 +95,7 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
     t.string "server"
     t.bigint "height", null: false
     t.text "description"
-    t.string "warning"
+    t.text "warning"
     t.string "protocol"
     t.string "explorer_address"
     t.string "explorer_transaction"
@@ -113,7 +113,7 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
     t.string "homepage"
     t.string "parent_id"
     t.string "type", limit: 30, default: "coin", null: false
-    t.string "status", limit: 32, null: false
+    t.string "status", limit: 32, default: "enabled", null: false
     t.integer "position", null: false
     t.integer "precision", limit: 1, default: 8, null: false
     t.string "icon_url"

@@ -30,6 +30,8 @@ class Withdraw < ApplicationRecord
   belongs_to :currency, required: true
   belongs_to :member, required: true
   belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
+  belongs_to :blockchain_coin_currency, -> { where.not(blockchain_key: nil) }, class_name: 'BlockchainCurrency', foreign_key: %i[blockchain_key currency_id], primary_key: %i[blockchain_key currency_id]
+  belongs_to :blockchain_fiat_currency, -> { where(blockchain_key: nil) }, class_name: 'BlockchainCurrency', foreign_key: :currency_id, primary_key: :currency_id
 
   # Optional beneficiary association gives ability to support both in-peatio
   # beneficiaries and managed by third party application.
@@ -47,17 +49,17 @@ class Withdraw < ApplicationRecord
   validates :block_number, allow_blank: true, numericality: { greater_than_or_equal_to: 0, only_integer: true }
   validates :sum,
             presence: true,
-            numericality: { greater_than_or_equal_to: ->(withdraw) { withdraw.currency.min_withdraw_amount }}
+            numericality: { greater_than_or_equal_to: ->(withdraw) { withdraw.blockchain_currency.min_withdraw_amount }}
 
   validates :blockchain_key,
             inclusion: { in: ->(_) { Blockchain.pluck(:key).map(&:to_s) } },
             if: -> { currency.coin? }
+
   validate do
     errors.add(:beneficiary, 'not active') if beneficiary.present? && !beneficiary.active? && !aasm_state.to_sym.in?(COMPLETED_STATES)
   end
 
   scope :completed, -> { where(aasm_state: COMPLETED_STATES) }
-  scope :processing, -> { where.not(aasm_state: COMPLETED_STATES) }
   scope :succeed_processing, -> { where(aasm_state: SUCCEED_PROCESSING_STATES) }
   scope :last_24_hours, -> { where('created_at > ?', 24.hour.ago) }
   scope :last_1_month, -> { where('created_at > ?', 1.month.ago) }
@@ -208,6 +210,10 @@ class Withdraw < ApplicationRecord
 
     sum_24_hours + sum * currency.get_price <= limits.limit_24_hour &&
       sum_1_month + sum * currency.get_price <= limits.limit_1_month
+  end
+
+  def blockchain_currency
+    currency.coin? ? blockchain_coin_currency : blockchain_fiat_currency
   end
 
   def blockchain_api
