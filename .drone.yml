@@ -418,7 +418,6 @@ steps:
     branch:
       - master
 
-# Trigger custom Peatio image build
 - name: build-custom-image
   image: curlimages/curl
   environment:
@@ -432,11 +431,6 @@ steps:
     - COMPONENT_VERSION=$(cat .tags)
     - "curl -s -XPOST -H \"Authorization: Bearer $DRONE_TOKEN\" -i \"$SERVER/api/repos/$REPO/builds?branch=$BRANCH&ASSEMBLY_COMPONENT_VERSION=$COMPONENT_VERSION&ASSEMBLY_COMPONENT=$COMPONENT\""
   detach: true
-  when:
-    branch:
-      - master
-      - "*-stable"
-      - "integration/*"
 
 trigger:
   event:
@@ -452,69 +446,66 @@ image_pull_secrets:
 ---
 kind: pipeline
 type: docker
-name: docker-build-stable
+name: docker-build-snap
 
 steps:
 # Update application version
-- name: git-tag-stable
+- name: git-tag-snap
   image: quay.io/openware/sdk-citools:2.6.7
   environment:
-    BOT_USERNAME: kite-bot
-    BOT_NAME: Kite Bot
-    BOT_EMAIL: kite-bot@heliostech.fr
     BRANCH_NAME: ${DRONE_BRANCH}
     REPO_NAME: ${DRONE_REPO}
     GITHUB_API_KEY:
       from_secret: kite_bot_key
   commands:
     - BUNDLE_GEMFILE=/sdk/Gemfile bundle exec rake --rakefile=/sdk/Rakefile ci:prebuild
-    - bin/genversion
+#    - bin/genversion
 
 # Build and push docker image using ".tags" file.
-- name: docker-build-and-push
-  image: plugins/docker
-  settings:
-    username:
-      from_secret: quay_username
-    password:
-      from_secret: quay_password
-    repo: quay.io/openware/peatio
-    registry: quay.io
+#- name: docker-build-and-push
+#  image: plugins/docker
+#  settings:
+#    username:
+#      from_secret: quay_username
+#    password:
+#      from_secret: quay_password
+#    repo: quay.io/openware/peatio
+#    registry: quay.io
 
 # Redeploy on master.devkube.com
-- name: devkube-redeploy
-  image: rubykube/microkube:0.2.0
-  environment:
-    WEBHOOK_JWT_SECRET:
-      from_secret: devkube_webhook_secret
-  commands:
-    - export latest_image=quay.io/openware/peatio:$(cat .tags)
-    - cd /home/app
-    - bundle exec rake payload:send[peatio,$latest_image,http://master.devkube.com:1337]
-  detach: true
-
-# Update changelog and API documentation, then push it to sdk repository and notify.
-- name: push-and-notify
-  image: quay.io/openware/sdk-citools:2.6.7
-  environment:
-    BOT_USERNAME: kite-bot
-    BOT_NAME: Kite Bot
-    BOT_EMAIL: kite-bot@heliostech.fr
-    REPO_NAME: ${DRONE_REPO}
-    BRANCH_NAME: ${DRONE_BRANCH}
-    SDK_BRANCH: ${DRONE_BRANCH}
-    TELEGRAM_BOT_TOKEN:
-      from_secret: telegram_bot_token
-    TELEGRAM_CHAT_ID:
-      from_secret: telegram_chat_id
-    SLACK_TOKEN:
-      from_secret: slack_token
-    SLACK_CHANNEL:
-      from_secret: slack_channel
-    GITHUB_API_KEY:
-      from_secret: kite_bot_key
-  commands:
-    - BUNDLE_GEMFILE=/sdk/Gemfile bundle exec rake --rakefile=/sdk/Rakefile ci:postbuild[/drone/src]
+#- name: devkube-redeploy
+#  image: rubykube/microkube:0.2.0
+#  environment:
+#    WEBHOOK_JWT_SECRET:
+#      from_secret: devkube_webhook_secret
+#  commands:
+#    - export latest_image=quay.io/openware/peatio:$(cat .tags)
+#    - cd /home/app
+#    - bundle exec rake payload:send[peatio,$latest_image,http://master.devkube.com:1337]
+#  detach: true
+#
+## Update changelog and API documentation, then push it to sdk repository and notify.
+#- name: push-and-notify
+#  image: quay.io/openware/sdk-citools:2.6.7
+#  environment:
+#    BOT_USERNAME: kite-bot
+#    BOT_NAME: Kite Bot
+#    BOT_EMAIL: kite-bot@heliostech.fr
+#    REPO_NAME: ${DRONE_REPO}
+#    BRANCH_NAME: ${DRONE_BRANCH}
+#    SDK_BRANCH: ${DRONE_BRANCH}
+#    TELEGRAM_BOT_TOKEN:
+#      from_secret: telegram_bot_token
+#    TELEGRAM_CHAT_ID:
+#      from_secret: telegram_chat_id
+#    SLACK_TOKEN:
+#      from_secret: slack_token
+#    SLACK_CHANNEL:
+#      from_secret: slack_channel
+#    GITHUB_API_KEY:
+#      from_secret: kite_bot_key
+#  commands:
+#    - BUNDLE_GEMFILE=/sdk/Gemfile bundle exec rake --rakefile=/sdk/Rakefile ci:postbuild[/drone/src]
 
 # Trigger custom Peatio image build
 - name: build-custom-image
@@ -531,25 +522,26 @@ steps:
     - "curl -s -XPOST -H \"Authorization: Bearer $DRONE_TOKEN\" -i \"$SERVER/api/repos/$REPO/builds?branch=$BRANCH&ASSEMBLY_COMPONENT_VERSION=$COMPONENT_VERSION&ASSEMBLY_COMPONENT=$COMPONENT\""
   detach: true
 
-- name: "Update global OpenDAX version"
-  image: quay.io/openware/goci:0.0.11
-  environment:
-    GIT_TOKEN:
-      from_secret: kite_bot_key
-  commands:
-    - /app/goci versions
+#- name: "Update global OpenDAX version"
+#  image: quay.io/openware/goci:0.0.11
+#  environment:
+#    GIT_TOKEN:
+#      from_secret: kite_bot_key
+#  commands:
+#    - /app/goci versions
 
 trigger:
   event:
     - push
   branch:
     - "*-stable"
+    - "integration/*"
 
-depends_on:
-- test-mysql-5.7
-- test-mariadb-10.3
-- test-mysql-8.0
-- test-postgresql-13.0
+#depends_on:
+#- test-mysql-5.7
+#- test-mariadb-10.3
+#- test-mysql-8.0
+#- test-postgresql-13.0
 
 image_pull_secrets:
   - dockerconfigjson
