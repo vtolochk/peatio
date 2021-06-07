@@ -6,7 +6,6 @@ class BlockchainService
 
   def initialize(blockchain)
     @blockchain = blockchain
-    # TODO check if [] array
     @blockchain_currencies = blockchain.blockchain_currencies.deposit_enabled
     @currencies = @blockchain_currencies.pluck(:currency_id).uniq
     @whitelisted_addresses = blockchain.whitelisted_smart_contracts.active
@@ -39,7 +38,6 @@ class BlockchainService
     tx = Peatio::Transaction.new(currency_id: transaction.currency_id,
                                  hash: transaction.txid,
                                  to_address: transaction.rid,
-                                 blockchain_key: transaction.blockchain_key,
                                  amount: transaction.amount)
     if @adapter.respond_to?(:fetch_transaction)
       @adapter.fetch_transaction(tx)
@@ -92,7 +90,9 @@ class BlockchainService
   end
 
   def update_or_create_deposit(transaction)
-    if transaction.amount < Currency.find(transaction.currency_id).min_deposit_amount
+    blockchain_currency = BlockchainCurrency.find_by(currency_id: transaction.currency_id,
+                                                     blockchain_key: @blockchain.key)
+    if transaction.amount < blockchain_currency.min_deposit_amount
       # Currently we just skip tiny deposits.
       Rails.logger.info do
         "Skipped deposit with txid: #{transaction.hash} with amount: #{transaction.hash}"\
@@ -105,7 +105,7 @@ class BlockchainService
     transaction = adapter.fetch_transaction(transaction) if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
     return unless transaction.status.success?
 
-    address = PaymentAddress.find_by(wallet: Wallet.deposit_wallet(transaction.currency_id, transaction.blockchain_key), address: transaction.to_address)
+    address = PaymentAddress.find_by(wallet: Wallet.deposit_wallet(transaction.currency_id, @blockchain.key), address: transaction.to_address)
     return if address.blank?
 
     # Skip deposit tx if there is tx for deposit collection process
@@ -122,7 +122,7 @@ class BlockchainService
         currency_id: transaction.currency_id,
         txid: transaction.hash,
         txout: transaction.txout,
-        blockchain_key: transaction.blockchain_key
+        blockchain_key: @blockchain.key
       ) do |d|
         d.address = transaction.to_address
         d.amount = transaction.amount
@@ -143,7 +143,7 @@ class BlockchainService
   def update_withdrawal(transaction)
     withdrawal =
       Withdraws::Coin.confirming
-        .find_by(currency_id: transaction.currency_id, txid: transaction.hash, blockchain_key: transaction.blockchain_key)
+        .find_by(currency_id: transaction.currency_id, blockchain_key: @blockchain.key, txid: transaction.hash)
 
     # Skip non-existing in database withdrawals.
     if withdrawal.blank?

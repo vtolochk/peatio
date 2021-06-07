@@ -35,14 +35,6 @@ module API
           documentation:{
             type: String,
             desc: 'Unique key to identify blockchain.'
-          }
-        )
-
-
-        expose(
-          :protocol,
-          documentation: {
-            desc: 'Blockchain protocol',
           },
           if: -> (withdraw){ withdraw.currency.coin? }
         )

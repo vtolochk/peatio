@@ -22,7 +22,6 @@ class WalletService
     transaction = Peatio::Transaction.new(to_address: withdrawal.rid,
                                           amount:     withdrawal.amount,
                                           currency_id: withdrawal.currency_id,
-                                          blockchain_key: withdrawal.blockchain_key,
                                           options: { tid: withdrawal.tid })
     transaction = @adapter.create_transaction!(transaction)
     save_transaction(transaction.as_json.merge(from_address: @wallet.address), withdrawal) if transaction.present?
@@ -46,7 +45,6 @@ class WalletService
           # Wallet max_balance will be in the platform currency
           max_balance:             (w.max_balance / deposit.currency.get_price.to_d).round(deposit.currency.precision, BigDecimal::ROUND_DOWN),
           min_collection_amount:   blockchain_currency.min_collection_amount,
-          blockchain_key:          blockchain_currency.blockchain_key,
           skip_deposit_collection: w.service.skip_deposit_collection? }
       end
     raise StandardError, "destination wallets don't exist" if destination_wallets.blank?
@@ -103,13 +101,12 @@ class WalletService
                                                   txout:          deposit.txout,
                                                   to_address:     deposit.address,
                                                   block_number:   deposit.block_number,
-                                                  blockchain_key: deposit.blockchain_key,
                                                   amount:         deposit.amount)
 
     transactions = @adapter.prepare_deposit_collection!(deposit_transaction,
                                                         # In #spread_deposit valid transactions saved with pending state
                                                         deposit_spread.select { |t| t.status.pending? },
-                                                        deposit.currency.to_blockchain_api_settings)
+                                                        blockchain_currency.to_blockchain_api_settings)
 
     if transactions.present?
       deposit.update(spread: deposit.spread.map { |s| s.merge(options: transactions.first.options) })
@@ -189,7 +186,6 @@ class WalletService
 
       transaction = Peatio::Transaction.new(to_address:     dw[:address],
                                             amount:         amount_for_wallet.to_d,
-                                            blockchain_key: dw[:blockchain_key],
                                             currency_id:    deposit.currency_id)
 
       # Tx will not be collected to this destination wallet

@@ -38,6 +38,15 @@ module API
           if: -> (deposit){ deposit.currency.coin? }
         )
 
+
+        expose(
+          :warning,
+          documentation: {
+            desc: 'Blockchain warning',
+          },
+          if: -> (deposit){ deposit.currency.coin? }
+        )
+
         expose(
           :amount,
           format_with: :decimal,

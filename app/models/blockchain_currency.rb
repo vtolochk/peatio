@@ -42,6 +42,8 @@ class BlockchainCurrency < ApplicationRecord
   validates :options, length: { maximum: 1000 }
   validates :base_factor, numericality: { greater_than_or_equal_to: 1, only_integer: true }
 
+  validates :blockchain_key, uniqueness: { scope: :currency_id }
+
   validates :deposit_fee,
             :min_deposit_amount,
             :min_collection_amount,
