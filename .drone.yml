@@ -367,15 +367,15 @@ steps:
     - bin/genversion
 
 # Build and push docker image using ".tags" file.
-- name: docker-build-and-push
-  image: plugins/docker
-  settings:
-    username:
-      from_secret: quay_username
-    password:
-      from_secret: quay_password
-    repo: quay.io/openware/peatio
-    registry: quay.io
+#- name: docker-build-and-push
+#  image: plugins/docker
+#  settings:
+#    username:
+#      from_secret: quay_username
+#    password:
+#      from_secret: quay_password
+#    repo: quay.io/openware/peatio
+#    registry: quay.io
 
 # Redeploy on master.devkube.com
 - name: devkube-redeploy
@@ -436,6 +436,7 @@ steps:
     branch:
       - master
       - "*-stable"
+      - "integration/*"
 
 trigger:
   event:
