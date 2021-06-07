@@ -71,17 +71,18 @@ module API
 
           desc 'Create new beneficiary',
                success: API::V2::Entities::Beneficiary
-
           params do
             requires :currency,
                      type: String,
                      values: { value: -> { Currency.visible.codes(bothcase: true) }, message: 'account.currency.doesnt_exist' },
                      as: :currency_id,
                      desc: 'Beneficiary currency code.'
-            requires :blockchain_key,
-                     values: { value: -> { ::Blockchain.pluck(:key) }, message: 'account.beneficiary.blockchain_key_doesnt_exist' },
-                     allow_blank: false,
-                     desc: 'Blockchain key of the requested beneficiary'
+            given currency_id: ->(currency_id) { currency_id.in?(Currency.coins.codes) } do
+              requires :blockchain_key,
+                      values: { value: -> { ::Blockchain.pluck(:key) }, message: 'account.beneficiary.blockchain_key_doesnt_exist' },
+                      allow_blank: false,
+                      desc: 'Blockchain key of the requested beneficiary'
+            end
             requires :name,
                      type: String,
                      allow_blank: false,

@@ -24,9 +24,6 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
       add_column t, :blockchain_key, :string, null: true, after: :currency_id
     end
 
-    # TODO
-    # deposit.spread / transaction
-
     # Update all coin beneficiaries with blockchain_key
     Beneficiary.find_each(batch_size: 100) do |beneficiary|
       beneficiary.update(blockchain_key: beneficiary.currency.blockchain_key)

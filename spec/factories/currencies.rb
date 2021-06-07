@@ -15,6 +15,7 @@ FactoryBot.define do
       name                 { 'Euro' }
       type                 { 'fiat' }
       precision            { 8 }
+      status               { 'disabled' }
     end
 
     trait :btc do

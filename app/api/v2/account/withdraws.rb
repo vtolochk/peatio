@@ -48,7 +48,7 @@ module API
         get '/withdraws' do
           user_authorize! :read, ::Withdraw
 
-          currency = Currency.find(params[:currency]) if params[:currency].present?
+          currency = Currency.find_by(id: params[:currency]) if params[:currency].present?
 
           current_user.withdraws.order(id: :desc)
                       .tap { |q| q.where!(currency: currency) if currency }
@@ -111,7 +111,8 @@ module API
           end
 
           currency = Currency.find(params[:currency])
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
+
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
                                                             blockchain_key: beneficiary.blockchain_key)
           unless blockchain_currency.withdrawal_enabled?
             error!({ errors: ['account.currency.withdrawal_disabled'] }, 422)
