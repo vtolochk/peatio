@@ -2,7 +2,7 @@
 
 module API
   module V2
-    module Admin
+    module Management
       module Entities
         class BlockchainCurrency < API::V2::Entities::BlockchainCurrency
           expose(

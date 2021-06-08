@@ -57,7 +57,7 @@ module API
               desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:options][:desc] }
             },
             status: {
-              values: { value: -> { ::BlockchainCurrency::STATES }, message: 'admin.currency.invalid_status'},
+              values: { value: -> { ::BlockchainCurrency::STATES }, message: 'admin.blockchain_currency.invalid_status'},
               desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:status][:desc] }
             },
             deposit_enabled: {
@@ -92,6 +92,9 @@ module API
           params do
             use :pagination
             use :ordering
+            optional :status,
+                     values: { value: -> { ::BlockchainCurrency::STATES }, message: 'admin.blockchain_currency.invalid_status'},
+                     desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:status][:desc] }
             optional :deposit_enabled,
                      type: { value: Boolean, message: 'admin.blockchain_currency.non_boolean_deposit_enabled' },
                      desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:deposit_enabled][:desc] }
@@ -159,26 +162,26 @@ module API
 
             present ::BlockchainCurrency.find(params[:id]), with: API::V2::Admin::Entities::BlockchainCurrency
           end
-        end
 
-        desc 'Update blockchain currency.' do
-          success API::V2::Admin::Entities::BlockchainCurrency
-        end
-        params do
-          use :update_blockchain_currency_params
-          requires :id,
-                   type: Integer,
-                   desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:id][:desc] }
-        end
-        post '/update' do
-          admin_authorize! :update, ::BlockchainCurrency, params.except(:id)
+          desc 'Update blockchain currency.' do
+            success API::V2::Admin::Entities::BlockchainCurrency
+          end
+          params do
+            use :update_blockchain_currency_params
+            requires :id,
+                     type: Integer,
+                     desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:id][:desc] }
+          end
+          post '/update' do
+            admin_authorize! :update, ::BlockchainCurrency, params.except(:id)
 
-          blockchain_currency = ::BlockchainCurrency.find(params[:id])
-          if blockchain_currency.update(declared(params, include_missing: false))
-            present blockchain_currency, with: API::V2::Admin::Entities::BlockchainCurrency
-          else
-            body errors: blockchain_currency.errors.full_messages
-            status 422
+            blockchain_currency = ::BlockchainCurrency.find(params[:id])
+            if blockchain_currency.update(declared(params, include_missing: false))
+              present blockchain_currency, with: API::V2::Admin::Entities::BlockchainCurrency
+            else
+              body errors: blockchain_currency.errors.full_messages
+              status 422
+            end
           end
         end
       end

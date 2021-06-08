@@ -397,6 +397,7 @@ describe API::V2::Account::Beneficiaries, 'POST', type: :request do
             create(:beneficiary,
                    member: member,
                    currency_id: :eth,
+                   blockchain_key: 'eth-rinkeby',
                    data: {address: beneficiary_data.dig(:data, :address)})
           end
 

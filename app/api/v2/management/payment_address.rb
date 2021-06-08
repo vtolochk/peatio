@@ -20,7 +20,6 @@ module API
                     desc: -> { API::V2::Management::Entities::Currency.documentation[:code][:desc] }
           requires :blockchain_key,
                    values: { value: -> { ::Blockchain.pluck(:key) }, message: 'management.payment_address.blockchain_key_doesnt_exist' },
-                   allow_blank: false,
                    desc: 'Blockchain key of the requested deposit address'
           optional :remote,
                     type: { value: Boolean, message: 'management.payment_address.non_boolean_remote' },
@@ -31,7 +30,7 @@ module API
           member = Member.find_by(uid: params[:uid]) if params[:uid].present?
 
           currency = Currency.find(params[:currency])
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
                                                             blockchain_key: params[:blockchain_key])
           unless blockchain_currency.deposit_enabled?
             error!({ errors: ['management.currency.deposit_disabled'] }, 422)
