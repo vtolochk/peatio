@@ -17,6 +17,7 @@ class Transaction < ApplicationRecord
 
   aasm whiny_transitions: false, column: :status do
     state :pending, initial: true
+    state :failed
     state :succeed
 
     event :confirm do
@@ -75,8 +76,8 @@ class Transaction < ApplicationRecord
                                   currency_id: fee_currency_id,
                                   reference_id: reference_id,
                                   reference_type: reference_type,
-                                  debit: fee,
-                                  credit: 0.0
+                                  debit: 0.0,
+                                  credit: fee
                                 })
   end
 end

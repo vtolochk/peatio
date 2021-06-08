@@ -83,6 +83,7 @@ class BlockchainService
   def filter_deposit_txs(block)
     # Filter transaction source/destination addresses
     addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
+    # TODO: add all withdraw wallets
     Wallet.hot.with_currency(@currencies.codes).pluck(:address).map do |addr|
       addresses << addr
     end
@@ -144,7 +145,10 @@ class BlockchainService
       if tx.status == 'success'
         deposit_tx.confirm!
         deposit.fee_process! if deposit.fee_collecting?
-        deposit.dispatch! if deposit.collecting?
+        # TODO: refactor
+        if deposit.collecting?
+          deposit.dispatch! if deposit.spread.map(&:status).eql?(['succeed'])
+        end
       else
         deposit_tx.fail!
         deposit.err! 'Fee collection transaction failed'

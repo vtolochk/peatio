@@ -178,6 +178,7 @@ module Ethereum
               "Withdrawal from #{@wallet.fetch(:address)} to #{transaction.to_address} failed."
       end
       transaction.hash = normalize_txid(txid)
+      transaction.fee = convert_from_base_unit(options.fetch(:gas_limit).to_i * options.fetch(:gas_price).to_i)
       transaction.options = options
       transaction
     end
