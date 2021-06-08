@@ -194,7 +194,7 @@ describe API::V2::Account::Deposits, type: :request do
     end
   end
 
-  describe 'GET /api/v2/account/deposit_address/:blockchain_key/:currency' do
+  describe 'GET /api/v2/account/deposit_address/:currency' do
     let(:currency) { :bch }
 
     context 'failed' do
@@ -211,7 +211,7 @@ describe API::V2::Account::Deposits, type: :request do
       end
 
       it 'validates currency with address_format param' do
-        api_get '/api/v2/account/deposit_address/abc', params: { address_format: 'cash' }, token: token
+        api_get '/api/v2/account/deposit_address/abc', params: { blockchain_key: 'btc-testnet', address_format: 'cash' }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('account.currency.doesnt_exist')
       end
@@ -222,7 +222,7 @@ describe API::V2::Account::Deposits, type: :request do
         end
 
         it 'renders unauthorized error' do
-          api_get '/api/v2/account/deposit_address/test/btc', token: token
+          api_get '/api/v2/account/deposit_address/btc', token: token
           expect(response).to have_http_status 403
           expect(response).to include_api_error('user.ability.not_permitted')
         end
@@ -237,21 +237,22 @@ describe API::V2::Account::Deposits, type: :request do
         before { member.payment_address(wallet.id).update!(address: '2N2wNXrdo4oEngp498XGnGCbru29MycHogR') }
 
         it 'expose data about eth address' do
-          api_get "/api/v2/account/deposit_address/#{blockchain_key}/#{currency}", token: token
+          api_get "/api/v2/account/deposit_address/#{currency}", params: { blockchain_key: blockchain_key }, token: token
           expect(response.body).to eq '{"currencies":["eth"],"blockchain_key":"eth-rinkeby","address":"2n2wnxrdo4oengp498xgngcbru29mychogr","state":"active"}'
         end
 
         it 'pending user address state' do
           member.payment_address(wallet.id).update!(address: nil)
-          api_get "/api/v2/account/deposit_address/#{blockchain_key}/#{currency}", token: token
+          api_get "/api/v2/account/deposit_address/#{currency}", params: { blockchain_key: blockchain_key }, token: token
           expect(response.body).to eq '{"currencies":["eth"],"blockchain_key":"eth-rinkeby","address":null,"state":"pending"}'
         end
 
         context 'currency code with dot' do
           let!(:currency) { create(:currency, :xagm_cx) }
+          let!(:blockchain_currency) { create(:blockchain_currency, :eth_network, currency_id: currency.id) }
 
           it 'returns information about specified deposit address' do
-            api_get "/api/v2/account/deposit_address/#{blockchain_key}/#{currency.code}", token: token
+            api_get "/api/v2/account/deposit_address/#{currency.code}", params: { blockchain_key: blockchain_key }, token: token
             expect(response).to have_http_status 200
             expect(response.body).to eq '{"currencies":["eth","xagm.cx"],"blockchain_key":"eth-rinkeby","address":"2n2wnxrdo4oengp498xgngcbru29mychogr","state":"active"}'
           end
@@ -259,7 +260,7 @@ describe API::V2::Account::Deposits, type: :request do
 
         it 'exposes non-remote addresses' do
           member.payment_address(wallet.id).update!(remote: true)
-          api_get "/api/v2/account/deposit_address/#{blockchain_key}/#{currency}", token: token
+          api_get "/api/v2/account/deposit_address/#{currency}", params: { blockchain_key: blockchain_key }, token: token
           expect(response.body).to eq '{"currencies":["eth"],"blockchain_key":"eth-rinkeby","address":null,"state":"pending"}'
         end
       end
@@ -267,12 +268,11 @@ describe API::V2::Account::Deposits, type: :request do
 
     context 'disabled deposit for currency' do
       let(:currency) { :btc }
-      let(:blockchain_key) { 'btc-testnet' }
 
       before { BlockchainCurrency.find_by(currency_id: currency).update!(deposit_enabled: false) }
 
       it 'returns error' do
-        api_get "/api/v2/account/deposit_address/#{blockchain_key}/#{currency}", token: token
+        api_get "/api/v2/account/deposit_address/#{currency}", params: { blockchain_key: 'btc-testnet' }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('account.currency.deposit_disabled')
       end

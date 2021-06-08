@@ -85,6 +85,7 @@ module API
           optional :tid,            type: String, desc: 'The shared transaction ID. Must not exceed 64 characters. Peatio will generate one automatically unless supplied.'
           optional :rid,            type: String, desc: 'The beneficiary ID or wallet address on the Blockchain.'
           optional :beneficiary_id, type: String, desc: 'ID of Active Beneficiary belonging to user.'
+          optional :blockchain_key, type: String, values: -> { ::Blockchain.pluck(:key) }, desc: 'Blockchain key of the requested withdrawal'
           requires :currency,       type: String, values: -> { Currency.codes(bothcase: true) }, desc: 'The currency code.'
           requires :amount,         type: BigDecimal, desc: 'The amount to withdraw.'
           optional :note,           type: String, desc: 'The note for withdraw.'
@@ -94,6 +95,7 @@ module API
                                     desc: -> { API::V2::Admin::Entities::Withdraw.documentation[:transfer_type][:desc] }
 
           exactly_one_of :rid, :beneficiary_id
+          exactly_one_of :beneficiary_id, :blockchain_key
         end
         post '/withdraws/new' do
           member = Member.find_by(uid: params[:uid])
@@ -106,8 +108,9 @@ module API
           end
 
           currency = Currency.find(params[:currency])
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
-                                                            blockchain_key: beneficiary.blockchain_key)
+          blockchain_key = beneficiary.present? ? beneficiary.blockchain_key : params[:blockchain_key]
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
+                                                            blockchain_key: blockchain_key)
           unless blockchain_currency.withdrawal_enabled?
             error!({ errors: ['management.currency.withdrawal_disabled'] }, 422)
           end
@@ -121,7 +124,7 @@ module API
             member: member,
             currency: currency,
             tid: params[:tid],
-            blockchain_key: beneficiary.blockchain_key
+            blockchain_key: blockchain_key
           )
 
           declared_params.merge!(beneficiary: beneficiary) if params[:beneficiary_id].present?

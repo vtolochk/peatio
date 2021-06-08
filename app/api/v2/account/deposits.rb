@@ -88,7 +88,7 @@ module API
                    type: String,
                    values: { value: -> { Currency.coins.visible.codes(bothcase: true) }, message: 'account.currency.doesnt_exist'},
                    desc: 'The account you want to deposit to.'
-          requires :blockchain_key,
+          optional :blockchain_key,
                    type: String,
                    values: { value: -> { ::Blockchain.pluck(:key) }, message: 'account.deposit.blockchain_key_doesnt_exist' },
                    desc: 'Blockchain key of the requested deposit address'
@@ -100,11 +100,11 @@ module API
                      desc: 'Address format legacy/cash'
           end
         end
-        get '/deposit_address/:blockchain_key/:currency', requirements: { currency: %r{[^\/]+} } do
+        get '/deposit_address/:currency', requirements: { currency: /[\w\.\-]+/ } do
           user_authorize! :read, ::PaymentAddress
 
           currency = Currency.find(params[:currency])
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
                                                             blockchain_key: params[:blockchain_key])
           unless blockchain_currency.deposit_enabled?
             error!({ errors: ['account.currency.deposit_disabled'] }, 422)

@@ -60,7 +60,7 @@ module API
                       .tap { |q| present paginate(q), with: API::V2::Entities::Withdraw }
         end
 
-        desc 'Returns withdrawal sums for last 4 hours and 1 month'
+        desc 'Returns withdrawal sums for last 24 hours and 1 month'
         get '/withdraws/sums' do
           user_authorize! :read, ::Withdraw
 

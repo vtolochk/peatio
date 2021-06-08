@@ -17,6 +17,10 @@ module API
               type: { value: BigDecimal, message: 'management.currency.non_decimal_price' },
               desc: -> { API::V2::Management::Entities::Currency.documentation[:price][:desc] }
             },
+            status: {
+              values: { value: -> { ::Currency::STATES }, message: 'management.currency.invalid_status'},
+              desc: -> { API::V2::Management::Entities::Currency.documentation[:status][:desc] }
+            },
             icon_url: { desc: -> { API::V2::Management::Entities::Currency.documentation[:icon_url][:desc] } },
             description: { desc: -> { API::V2::Management::Entities::Currency.documentation[:description][:desc] } },
             homepage: { desc: -> { API::V2::Management::Entities::Currency.documentation[:homepage][:desc] } },
