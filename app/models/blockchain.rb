@@ -45,19 +45,25 @@ class Blockchain < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20201125134745
+# Schema version: 20210609094033
 #
 # Table name: blockchains
 #
-#  id                   :integer          not null, primary key
+#  id                   :bigint           not null, primary key
 #  key                  :string(255)      not null
 #  name                 :string(255)
 #  client               :string(255)      not null
 #  server               :string(255)
 #  height               :bigint           not null
+#  description          :text(65535)
+#  warning              :text(65535)
+#  protocol             :string(255)
 #  explorer_address     :string(255)
 #  explorer_transaction :string(255)
 #  min_confirmations    :integer          default(6), not null
+#  deposit_fee          :decimal(32, 16)  default(0.0), not null
+#  min_deposit_amount   :decimal(32, 16)  default(0.0), not null
+#  withdraw_fee         :decimal(32, 16)  default(0.0), not null
 #  status               :string(255)      not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
