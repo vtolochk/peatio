@@ -253,17 +253,18 @@ class Deposit < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20200827105929
+# Schema version: 20210609094033
 #
 # Table name: deposits
 #
-#  id             :integer          not null, primary key
-#  member_id      :integer          not null
+#  id             :bigint           not null, primary key
+#  member_id      :bigint           not null
 #  currency_id    :string(10)       not null
+#  blockchain_key :string(255)
 #  amount         :decimal(32, 16)  not null
 #  fee            :decimal(32, 16)  not null
 #  address        :string(95)
-#  from_addresses :string(1000)
+#  from_addresses :text(65535)
 #  txid           :string(128)
 #  txout          :integer
 #  aasm_state     :string(30)       not null
@@ -272,6 +273,7 @@ end
 #  transfer_type  :integer
 #  tid            :string(64)       not null
 #  spread         :string(1000)
+#  error          :json
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
 #  completed_at   :datetime

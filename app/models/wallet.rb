@@ -153,11 +153,11 @@ class Wallet < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20201125134745
+# Schema version: 20210609094033
 #
 # Table name: wallets
 #
-#  id                 :integer          not null, primary key
+#  id                 :bigint           not null, primary key
 #  blockchain_key     :string(32)
 #  name               :string(64)
 #  address            :string(255)      not null
