@@ -198,6 +198,8 @@ describe API::V2::Account::Deposits, type: :request do
     let(:currency) { :bch }
 
     context 'failed' do
+      let(:blockchain_key) { 'btc-testnet' }
+
       it 'validates currency' do
         api_get "/api/v2/account/deposit_address/dildocoin", token: token
         expect(response).to have_http_status 422
@@ -205,13 +207,14 @@ describe API::V2::Account::Deposits, type: :request do
       end
 
       it 'validates currency address format' do
-        api_get '/api/v2/account/deposit_address/btc', params: { blockchain_key: 'btc-testnet', address_format: 'cash' }, token: token
+        api_get '/api/v2/account/deposit_address/btc', params: { address_format: 'cash', blockchain_key: blockchain_key }, token: token
+
         expect(response).to have_http_status 422
         expect(response).to include_api_error('account.deposit_address.doesnt_support_cash_address_format')
       end
 
       it 'validates currency with address_format param' do
-        api_get '/api/v2/account/deposit_address/abc', params: { blockchain_key: 'btc-testnet', address_format: 'cash' }, token: token
+        api_get '/api/v2/account/deposit_address/abc', params: { address_format: 'cash', blockchain_key: blockchain_key }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('account.currency.doesnt_exist')
       end

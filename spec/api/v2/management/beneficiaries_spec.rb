@@ -288,6 +288,7 @@ describe API::V2::Management::Beneficiaries, type: :request do
             before do
               create(:beneficiary,
                      member: member,
+                     blockchain_key: 'eth-rinkeby',
                      currency_id: :eth,
                      data: {address: beneficiary_data.dig(:data, :address)})
             end

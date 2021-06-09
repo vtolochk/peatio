@@ -30,7 +30,7 @@ module API
           documentation: {
             type: String,
             desc: 'Currency description',
-            example: -> { ::Currency.visible.first.id }
+            example: -> { ::Currency.visible.first.description }
           }
         )
 
@@ -103,7 +103,6 @@ module API
             is_array: true,
             desc: 'Currency networks.'
           },
-          if: -> (currency){ currency.coin? }
         ) do |c|
           c.blockchain_currencies
         end

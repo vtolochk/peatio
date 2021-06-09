@@ -114,7 +114,7 @@ module API
                    desc: -> { API::V2::Management::Entities::Currency.documentation[:position][:desc] }
           optional :status,
                    values: { value: -> { ::Currency::STATES }, message: 'management.currency.invalid_status'},
-                   desc: -> { API::V2::Management::Entities::Currency.documentation[:visible][:desc] }
+                   desc: -> { API::V2::Management::Entities::Currency.documentation[:status][:desc] }
           optional :precision,
                    type: { value: Integer, message: 'management.currency.non_integer_base_precision' },
                    default: 8,

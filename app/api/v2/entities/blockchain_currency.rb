@@ -40,7 +40,6 @@ module API
           :deposit_fee,
           documentation: {
             desc: 'Blockchain currency deposit fee',
-            example: -> { ::BlockchainCurrency.enabled.first.deposit_fee }
           }
         )
 
@@ -48,7 +47,6 @@ module API
           :min_deposit_amount,
           documentation: {
             desc: 'Minimal deposit amount',
-            example: -> { ::BlockchainCurrency.enabled.first.min_deposit_amount }
           }
         )
 
@@ -56,7 +54,6 @@ module API
           :withdraw_fee,
           documentation: {
             desc: 'Blockchain currency withdraw fee',
-            example: -> { ::BlockchainCurrency.enabled.first.withdraw_fee }
           }
         )
 
@@ -64,7 +61,6 @@ module API
           :min_withdraw_amount,
           documentation: {
             desc: 'Minimal withdraw amount',
-            example: -> { ::BlockchainCurrency.enabled.first.min_withdraw_amount }
           }
         )
 
@@ -72,7 +68,6 @@ module API
           :withdraw_limit_24h,
           documentation: {
             desc: 'Blockchain currency 24h withdraw limit',
-            example: -> { ::BlockchainCurrency.enabled.first.withdraw_limit_24h }
           }
         )
 
@@ -80,7 +75,6 @@ module API
           :withdraw_limit_72h,
           documentation: {
             desc: 'Blockchain currency 72h withdraw limit',
-            example: -> { ::BlockchainCurrency.enabled.first.withdraw_limit_72h }
           }
         )
 
@@ -88,7 +82,6 @@ module API
           :base_factor,
           documentation: {
             desc: 'Blockchain currency base factor',
-            example: -> { ::BlockchainCurrency.enabled.first.base_factor }
           }
         )
 
