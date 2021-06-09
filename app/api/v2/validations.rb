@@ -83,10 +83,9 @@ module API
         def validate_param!(name, params)
           return unless params.key?(name)
 
-          currency = Currency.find_by(id: params[:currency])
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency_id],
-                                                            blockchain_key: params[:blockchain_key])
-          return if currency && blockchain_currency.blockchain_api.supports_cash_addr_format?
+          blockchain_currency = BlockchainCurrency.find_by(currency_id: params[:currency],
+                                                           blockchain_key: params[:blockchain_key])
+          return if blockchain_currency && blockchain_currency.blockchain_api.supports_cash_addr_format?
 
           fail Grape::Exceptions::Validation,
               params:  [@scope.full_name('currency')],

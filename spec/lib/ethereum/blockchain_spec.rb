@@ -1,4 +1,8 @@
 describe Ethereum::Eth::Blockchain do
+  before do
+    create(:currency, :tom)
+    create(:blockchain_currency, :tom_network)
+  end
 
   let(:eth) do
     BlockchainCurrency.find_by(currency_id: :eth)
@@ -13,7 +17,7 @@ describe Ethereum::Eth::Blockchain do
   end
 
   let!(:tom) do
-    create(:blockchain_currency, :eth_network, currency_id: :tom)
+    BlockchainCurrency.find_by(currency_id: :tom)
   end
 
   let!(:address_1) { create(:whitelisted_smart_contract, :address_1, address: '0x6c0b51971650d28821ce30b15b02b9826a20b129') }

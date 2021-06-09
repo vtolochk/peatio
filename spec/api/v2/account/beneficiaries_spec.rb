@@ -381,6 +381,7 @@ describe API::V2::Account::Beneficiaries, 'POST', type: :request do
           before do
             create(:beneficiary,
                    member: member,
+                   blockchain_key: beneficiary_data[:blockchain_key],
                    currency_id: beneficiary_data[:currency],
                    data: {address: beneficiary_data.dig(:data, :address)})
           end
