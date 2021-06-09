@@ -19,7 +19,9 @@ describe BlockchainService do
   let!(:fake_currency) { create(:currency, :fake) }
   let!(:fake_currency1) { create(:currency, :fake, id: 'fake1') }
   let!(:fake_currency2) { create(:currency, :fake, id: 'fake2') }
-  let!(:wallet) { create(:wallet, :fake_deposit) }
+  let!(:deposit_wallet) { create(:wallet, :fake_deposit) }
+  let!(:hot_wallet) { create(:wallet, :fake_hot) }
+  let!(:fee_wallet) { create(:wallet, :fake_fee) }
 
   let!(:member) { create(:member) }
 
@@ -36,7 +38,7 @@ describe BlockchainService do
   let(:expected_block) { Peatio::Block.new(block_number, expected_transactions) }
 
   before do
-    wallet.currencies << [fake_currency1, fake_currency2]
+    deposit_wallet.currencies << [fake_currency1, fake_currency2]
     Peatio::Blockchain.registry.expects(:[])
                          .with(:fake)
                          .returns(fake_adapter.class)
@@ -57,7 +59,7 @@ describe BlockchainService do
 
       before do
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address')
         service.adapter.stubs(:fetch_block!).returns(expected_block)
         service.process_block(block_number)
@@ -103,10 +105,10 @@ describe BlockchainService do
     context 'two fake deposits for one currency were created during block processing' do
       before do
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address')
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address1')
         service.adapter.stubs(:fetch_block!).returns(expected_block)
         service.process_block(block_number)
@@ -138,10 +140,10 @@ describe BlockchainService do
     context 'two fake deposits for two currency were created during block processing' do
       before do
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address')
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address2')
         service.adapter.stubs(:fetch_block!).returns(expected_block)
         service.process_block(block_number)
@@ -160,7 +162,7 @@ describe BlockchainService do
       let!(:transaction) { create(:transaction, txid: 'fake_hash1') }
       before do
         PaymentAddress.create!(member: member,
-                               wallet: wallet,
+                               wallet: deposit_wallet,
                                address: 'fake_address')
         service.adapter.stubs(:fetch_block!).returns(expected_block)
         service.process_block(block_number)
@@ -403,10 +405,10 @@ describe BlockchainService do
     before do
       service.stubs(:latest_block_number).returns(100)
       PaymentAddress.create!(member: member,
-                             wallet: wallet,
+                             wallet: deposit_wallet,
                              address: 'fake_address')
       PaymentAddress.create!(member: member,
-                             wallet: wallet,
+                             wallet: deposit_wallet,
                              address: 'fake_address2')
       service.adapter.stubs(:fetch_block!).returns(expected_block, expected_block1)
     end
@@ -433,6 +435,39 @@ describe BlockchainService do
       service.process_block(block_number)
       expect(withdraw1.reload.succeed?).to be true
       expect(withdraw2.reload.succeed?).to be true
+    end
+  end
+
+  describe 'filter_deposit_txs' do
+    let(:expected_transactions) do
+      [
+        # { hash: 'fake_hash1', to_address: 'fake_address1', amount: 1, block_number: 3, currency_id: 'fake1', txout: 1, status: 'success' },
+        # { hash: 'fake_hash2', to_address: 'fake_address2', amount: 2, block_number: 3, currency_id: 'fake1', txout: 2, status: 'success' },
+        # { hash: 'fake_hash3', to_address: 'fake_address3', amount: 3, block_number: 3, currency_id: 'fake1', txout: 1, status: 'success' }
+      ].map { |t| Peatio::Transaction.new(t) }
+    end
+
+    let(:fake_deposit) do
+      Deposit.new(
+        type: Deposits::Coin,
+        currency: Currency.find('fake'),
+        amount: 100,
+        member: member,
+        address: 'fake_address',
+        txid: 'fake_hash1',
+        txout: 0
+      ).tap {|d| d.save! }
+    end
+
+    let(:expected_block1) { Peatio::Block.new(block_number, expected_transactions) }
+
+    before do
+      PaymentAddress.create!(member: member,
+                             wallet: deposit_wallet,
+                             address: 'fake_address')
+    end
+    it do
+      binding.pry
     end
   end
 end

@@ -17,6 +17,7 @@ class Transaction < ApplicationRecord
 
   aasm whiny_transitions: false, column: :status do
     state :pending, initial: true
+    state :skipped
     state :failed
     state :succeed
 

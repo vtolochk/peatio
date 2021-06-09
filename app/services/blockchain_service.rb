@@ -84,7 +84,7 @@ class BlockchainService
     # Filter transaction source/destination addresses
     addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
     # TODO: add all withdraw wallets
-    Wallet.hot.with_currency(@currencies.codes).pluck(:address).map do |addr|
+    Wallet.with_currency(@currencies.codes).where(kind: ['hot', 'fee']).pluck(:address).map do |addr|
       addresses << addr
     end
 
