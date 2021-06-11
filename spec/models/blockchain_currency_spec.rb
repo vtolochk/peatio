@@ -185,4 +185,27 @@ describe BlockchainCurrency do
       end
     end
   end
+
+  context 'to_blockchain_api_settings' do
+    let(:blockchain_currency) { BlockchainCurrency.find_by(currency_id: 'eth') }
+
+    before do
+      Blockchain.any_instance.stubs(:collection_gas_speed).returns('fast')
+      Blockchain.any_instance.stubs(:withdrawal_gas_speed).returns('safelow')
+    end
+
+    context 'withdrawal gas speed' do
+      it 'should return blockchain_api_settings' do
+        result = blockchain_currency.to_blockchain_api_settings
+        expect(result[:options][:gas_price]).to eq 'safelow'
+      end
+    end
+
+    context 'collection gas speed' do
+      it 'should return blockchain_api_settings' do
+        result = blockchain_currency.to_blockchain_api_settings(withdrawal_gas_speed=false)
+        expect(result[:options][:gas_price]).to eq 'fast'
+      end
+    end
+  end
 end

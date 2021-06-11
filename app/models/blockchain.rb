@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 class Blockchain < ApplicationRecord
+  GAS_SPEEDS = %w[standard safelow fast].freeze
+
   has_many :wallets, foreign_key: :blockchain_key, primary_key: :key
   has_many :whitelisted_smart_contracts, foreign_key: :blockchain_key, primary_key: :key
   has_many :blockchain_currencies, foreign_key: :blockchain_key, primary_key: :key
@@ -14,6 +16,7 @@ class Blockchain < ApplicationRecord
             numericality: { greater_than_or_equal_to: 1, only_integer: true }
   validates :server, url: { allow_blank: true }
   validates :client, inclusion: { in: -> (_) { clients.map(&:to_s) } }
+  validates :collection_gas_speed, :withdrawal_gas_speed, inclusion: { in: GAS_SPEEDS }, allow_blank: true
 
   validates :min_deposit_amount,
             :withdraw_fee,
@@ -50,7 +53,7 @@ class Blockchain < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20210609094033
+# Schema version: 20210611085637
 #
 # Table name: blockchains
 #
@@ -60,6 +63,8 @@ end
 #  client               :string(255)      not null
 #  server               :string(255)
 #  height               :bigint           not null
+#  collection_gas_speed :string(255)
+#  withdrawal_gas_speed :string(255)
 #  description          :text(65535)
 #  warning              :text(65535)
 #  protocol             :string(255)

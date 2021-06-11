@@ -4,7 +4,7 @@ class BlockchainCurrency < ApplicationRecord
 
   # == Constants ============================================================
   DB_DECIMAL_PRECISION = 16
-  OPTIONS_ATTRIBUTES = %i[erc20_contract_address gas_limit gas_price].freeze
+  OPTIONS_ATTRIBUTES = %i[erc20_contract_address gas_limit].freeze
 
   STATES = %w[enabled disabled hidden].freeze
   # enabled - user can deposit and withdraw.
@@ -104,10 +104,17 @@ class BlockchainCurrency < ApplicationRecord
     Math.log(base_factor, 10).round
   end
 
-  def to_blockchain_api_settings
+  def to_blockchain_api_settings(withdrawal_gas_speed=true)
     # We pass options are available as top-level hash keys and via options for
     # compatibility with Wallet#to_wallet_api_settings.
     opt = options.compact.deep_symbolize_keys
+
+    # System have gas_speed configuration in blockchain level
+    # And it differs for deposit collection transfer and withdrawal transfer
+    # By default system use withdrawal_gas_speed
+    gas_speed = withdrawal_gas_speed ? blockchain.withdrawal_gas_speed : blockchain.collection_gas_speed
+    opt.merge!(gas_price: gas_speed) if gas_speed
+
     opt.deep_symbolize_keys.merge(id:                    currency.id,
                                   base_factor:           base_factor,
                                   min_collection_amount: min_collection_amount,
