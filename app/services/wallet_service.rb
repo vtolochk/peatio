@@ -20,7 +20,7 @@ class WalletService
                                           currency_id: withdrawal.currency_id,
                                           options: { tid: withdrawal.tid })
     transaction = @adapter.create_transaction!(transaction)
-    save_transaction(transaction.as_json.merge(from_address: @wallet.address), withdrawal) if transaction.present?
+    save_transaction(transaction.as_json.merge(from_address: @wallet.address, kind: 'tx', blockchain_key: withdrawal.currency.blockchain.key), withdrawal) if transaction.present?
     transaction
   end
 

@@ -83,7 +83,7 @@ class BlockchainService
   def filter_deposit_txs(block)
     # Filter transaction source/destination addresses
     addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
-    # TODO: add all withdraw wallets
+
     Wallet.with_currency(@currencies.codes).pluck(:address).map do |addr|
       addresses << addr.downcase
     end
@@ -188,7 +188,6 @@ class BlockchainService
       return
     end
 
-    # In which cases????
     # Fetch transaction from a blockchain that has `pending` status.
     if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
       transaction = adapter.fetch_transaction(transaction)

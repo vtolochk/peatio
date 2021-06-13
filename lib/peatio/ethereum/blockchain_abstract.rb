@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry-byebug'
-
 module Ethereum
   class BlockchainAbstract < Peatio::Blockchain::Abstract
     UndefinedCurrencyError = Class.new(StandardError)
@@ -245,7 +243,6 @@ module Ethereum
       end
     end
 
-    # What is the point?
     def build_invalid_erc20_transaction(txn_receipt)
       currencies = @erc20.select { |c| c.dig(:options, contract_address_option) == txn_receipt.fetch('to') }
       return if currencies.blank?
