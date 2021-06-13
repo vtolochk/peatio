@@ -84,20 +84,21 @@ class BlockchainService
     # Filter transaction source/destination addresses
     addresses = PaymentAddress.where(wallet: Wallet.deposit.with_currency(@currencies.codes), address: block.transactions.map(&:to_address)).pluck(:address)
     # TODO: add all withdraw wallets
-    Wallet.with_currency(@currencies.codes).where(kind: ['hot', 'fee']).pluck(:address).map do |addr|
-      addresses << addr
+    Wallet.with_currency(@currencies.codes).pluck(:address).map do |addr|
+      addresses << addr.downcase
     end
 
     # Select transactions, that are related to the platform
     deposit_related_txs = block.select { |transaction| transaction.to_address.in?(addresses) }
 
-    # I'm not sure that selecting only pending txs is safe
-    # Select pending transactions in database
-    existing_db_txs = Transaction.pending.where(txid: deposit_related_txs.map(&:to_address))
+    # Select transactions in database
+    existing_db_txs = Transaction.where(txid: deposit_related_txs.map(&:hash))
     existing_db_txs_ids = existing_db_txs.pluck(:txid)
 
     # Partition returns two arrays, the first containing the elements of enum
     # for which the block evaluates to true, the second containing the rest.
+    #
+    # This is not really safe, because tx and prebuild_tx can be recognized as a new deposit
     existing_deposits_txs, new_deposits_txs = deposit_related_txs.partition do |tx|
       tx.hash.in?(existing_db_txs_ids)
     end
@@ -130,28 +131,49 @@ class BlockchainService
   # Deposit in state collecting
   # check tx state
   # if succeed change state to collected and change state of db_tx to succeed
-  def process_pending_deposit_txs(block_deposit_txs, db_txs)
+  def process_pending_deposit_txs(block_txs, db_txs)
     db_txs.each do |db_tx|
-      block_deposit_tx = block_deposit_txs.find { |tx| tx if db_tx.txid == tx.hash }
-      next unless block_deposit_tx
+      next unless db_txs.pending?
 
-      deposit = db_txs.reference
+      block_tx = block_txs.find { |tx| tx if db_tx.txid == tx.hash }
+      next unless block_tx
+
+      deposit = db_tx.reference
       next unless deposit.fee_collecting? || deposit.collecting?
 
-      tx = adapter.fetch_transaction(tx) if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
-      next unless tx.status.success?
-      deposit_tx.fee = tx.fee
+      block_tx = adapter.fetch_transaction(block_tx) if @adapter.respond_to?(:fetch_transaction) && ( block_tx.fee.blank? || block_tx.status.pending? )
 
-      if tx.status == 'success'
-        deposit_tx.confirm!
-        deposit.fee_process! if deposit.fee_collecting?
-        # TODO: refactor
-        if deposit.collecting?
-          deposit.dispatch! if deposit.spread.map(&:status).eql?(['succeed'])
+      db_tx.fee = block_tx.fee
+      # db_tx.fee_currency_id = block_tx.fee_currency_id
+      db_tx.block_number = block_tx.block_number
+      db_tx.save!
+
+      # BSC can return success only after fetch transaction
+      if block_tx.status == 'success'
+        db_tx.confirm!
+
+        if deposit.fee_collecting? && db_tx.kind == 'tx_prebuild'
+          deposit.fee_process! if deposit.fee_collecting?
         end
+
+        if deposit.collecting? && db_tx.kind == 'tx'
+          updated_spread = deposit.spread.map do |tx|
+            tx[:status] = 'succeed' if tx[:hash] == block_tx.hash
+            tx
+          end
+
+          deposit.update(spread: updated_spread)
+          deposit.dispatch! if deposit.spread.map{|t| t[:status]}.uniq.eql?(['succeed'])
+        end
+
+      elsif block_tx.status == 'failed'
+        db_tx.fail!
+        deposit.err! 'Fee collection transaction failed' if db_tx.kind == 'tx_prebuild'
+        deposit.err! 'Collection transaction failed' if db_tx.kind == 'tx'
+
       else
-        deposit_tx.fail!
-        deposit.err! 'Fee collection transaction failed'
+      #   What should we do here?
+      # Is it possible?
       end
     end
   end
@@ -216,11 +238,19 @@ class BlockchainService
     if @adapter.respond_to?(:fetch_transaction) && transaction.status.pending?
       transaction = adapter.fetch_transaction(transaction)
     end
+
+    db_tx = Transaction.find_by(txid: transaction.hash)
+    db_tx.fee = transaction.fee
+    db_tx.block_number = transaction.block_number
+    # db_tx.fee_currency_id = transaction.fee_currency_id
+
     # Manually calculating withdrawal confirmations, because blockchain height is not updated yet.
     if transaction.status.failed?
       withdrawal.fail!
+      db_tx.fail!
     elsif transaction.status.success? && latest_block_number - withdrawal.block_number >= @blockchain.min_confirmations
       withdrawal.success!
+      db_tx.confirm!
     end
   end
 end

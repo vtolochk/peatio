@@ -439,13 +439,10 @@ describe BlockchainService do
   end
 
   describe 'filter_deposit_txs' do
-    let(:expected_transactions) do
-      [
-        # { hash: 'fake_hash1', to_address: 'fake_address1', amount: 1, block_number: 3, currency_id: 'fake1', txout: 1, status: 'success' },
-        # { hash: 'fake_hash2', to_address: 'fake_address2', amount: 2, block_number: 3, currency_id: 'fake1', txout: 2, status: 'success' },
-        # { hash: 'fake_hash3', to_address: 'fake_address3', amount: 3, block_number: 3, currency_id: 'fake1', txout: 1, status: 'success' }
-      ].map { |t| Peatio::Transaction.new(t) }
-    end
+    # Here I need
+    # 1 new deposit tx
+    # 1 fees tx ( from fee wallet )
+    # 2 deposit collection tx ( to hot and warm wallet )
 
     let(:fake_deposit) do
       Deposit.new(
@@ -453,21 +450,70 @@ describe BlockchainService do
         currency: Currency.find('fake'),
         amount: 100,
         member: member,
-        address: 'fake_address',
+        address: 'member_deposit_address',
         txid: 'fake_hash1',
         txout: 0
-      ).tap {|d| d.save! }
+      ).tap {|d| d.save!; d.accept!; d.process!; d.confirm_deposit_collection! }
     end
 
-    let(:expected_block1) { Peatio::Block.new(block_number, expected_transactions) }
+    let(:fees_tx) do
+      Transaction.create(
+        currency: Currency.find('fake'),
+        kind: 'tx_prebuild',
+        blockchain_key: 'fake-testnet',
+        reference: fake_deposit,
+        txid: 'fake_hash_fees',
+        from_address: fee_wallet.address,
+        to_address: 'member_deposit_address',
+        amount: 10,
+        txout: 2
+      )
+    end
+
+    let(:collection_tx) do
+      Transaction.create(
+        currency: Currency.find('fake'),
+        kind: 'tx',
+        blockchain_key: 'fake-testnet',
+        reference: fake_deposit,
+        txid: 'fake_collection',
+        from_address: 'member_deposit_address',
+        to_address: 'fake-deposit',
+        amount: 100,
+        txout: 2
+      )
+    end
+
+    let(:blockchain_new_deposit_tx) do
+      Peatio::Transaction.new(hash: 'fake_hash_new_deposit', to_address: 'member_deposit_address', amount: 1, block_number: 3, currency_id: 'fake1', txout: 1, status: 'success')
+    end
+
+    let(:blockchain_fee_tx) do
+      Peatio::Transaction.new(hash: fees_tx.txid, to_address: fees_tx.to_address, amount: fees_tx.amount, block_number: 3, currency_id: fees_tx.currency, txout: 2, status: 'success')
+    end
+
+    let(:blockchain_collection_tx) do
+      Peatio::Transaction.new(hash: collection_tx.txid, to_address: collection_tx.to_address, amount: collection_tx.amount, block_number: 3, currency_id: collection_tx.currency, txout: 2, status: 'success')
+    end
+
+    let(:expected_block) { Peatio::Block.new(block_number, [blockchain_new_deposit_tx, blockchain_fee_tx, blockchain_collection_tx]) }
 
     before do
       PaymentAddress.create!(member: member,
                              wallet: deposit_wallet,
-                             address: 'fake_address')
+                             address: 'member_deposit_address')
+      service.adapter.stubs(:fetch_block!).returns(expected_block)
     end
-    it do
-      binding.pry
+
+    it 'filter' do
+      result = service.send(:filter_deposit_txs, expected_block)
+      expect(result[:new_deposits_blockchain_txs]).to eq [blockchain_new_deposit_tx]
+      expect(result[:existing_deposits_blockchain_txs]).to eq [blockchain_fee_tx, blockchain_collection_tx]
+      expect(result[:existing_deposits_db_txs]).to eq [fees_tx, collection_tx]
+    end
+
+    it 'process_pending_deposit_txs' do
+      service.send(:process_pending_deposit_txs, [blockchain_fee_tx, blockchain_collection_tx], [fees_tx, collection_tx])
     end
   end
 end

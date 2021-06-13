@@ -192,16 +192,18 @@ module Ethereum
     end
 
     def build_eth_transactions(block_txn)
+      fee = block_txn.fetch('gas').hex * block_txn.fetch('gasPrice').hex
       [
         {
           hash:             normalize_txid(block_txn.fetch('hash')),
           amount:           convert_from_base_unit(block_txn.fetch('value').hex, @eth),
+          fee:              convert_from_base_unit(fee, @eth),
           from_addresses:   [normalize_address(block_txn['from'])],
           to_address:       normalize_address(block_txn['to']),
           txout:            block_txn.fetch('transactionIndex').to_i(16),
           block_number:     block_txn.fetch('blockNumber').to_i(16),
           currency_id:      @eth.fetch(:id),
-          fee_currency_id:  @eth.fetch(:id),
+          # fee_currency_id:  @eth.fetch(:id),
           status:           transaction_status(block_txn)
         }
       ]
@@ -212,6 +214,8 @@ module Ethereum
       if transaction_status(txn_receipt) == 'fail' && txn_receipt.fetch('logs').blank?
         return build_invalid_erc20_transaction(txn_receipt)
       end
+
+      fee = txn_receipt.fetch('gas').hex * block_txn.fetch('gasPrice').hex
 
       txn_receipt.fetch('logs').each_with_object([]) do |log, formatted_txs|
         next if log['blockHash'].blank? && log['blockNumber'].blank?
@@ -229,13 +233,13 @@ module Ethereum
         currencies.each do |currency|
           formatted_txs << { hash: normalize_txid(txn_receipt.fetch('transactionHash')),
                              amount: convert_from_base_unit(log.fetch('data').hex, currency),
-                             fee: convert_from_base_unit(txn_receipt.fetch('gasUsed').hex, currency),
+                             fee:  convert_from_base_unit(fee, currency),
                              from_addresses: [normalize_address(txn_receipt['from'])],
                              to_address: destination_address,
                              txout: log['logIndex'].to_i(16),
                              block_number: txn_receipt.fetch('blockNumber').to_i(16),
                              currency_id: currency.fetch(:id),
-                             fee_currency_id:    @eth.fetch(:id),
+                             # fee_currency_id:    @eth.fetch(:id),
                              status: transaction_status(txn_receipt) }
         end
       end
