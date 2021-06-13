@@ -133,7 +133,7 @@ class BlockchainService
   # if succeed change state to collected and change state of db_tx to succeed
   def process_pending_deposit_txs(block_txs, db_txs)
     db_txs.each do |db_tx|
-      next unless db_txs.pending?
+      next unless db_tx.pending?
 
       block_tx = block_txs.find { |tx| tx if db_tx.txid == tx.hash }
       next unless block_tx
@@ -242,6 +242,7 @@ class BlockchainService
     db_tx.fee = transaction.fee
     db_tx.block_number = transaction.block_number
     # db_tx.fee_currency_id = transaction.fee_currency_id
+    db_tx.save!
 
     # Manually calculating withdrawal confirmations, because blockchain height is not updated yet.
     if transaction.status.failed?
