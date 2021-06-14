@@ -50,7 +50,7 @@ class Blockchain < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20210601111215
+# Schema version: 20210609094033
 #
 # Table name: blockchains
 #
@@ -66,12 +66,9 @@ end
 #  explorer_address     :string(255)
 #  explorer_transaction :string(255)
 #  min_confirmations    :integer          default(6), not null
-<<<<<<< HEAD
-=======
 #  min_deposit_amount   :decimal(32, 16)  default(0.0), not null
 #  withdraw_fee         :decimal(32, 16)  default(0.0), not null
 #  min_withdraw_amount  :decimal(32, 16)  default(0.0), not null
->>>>>>> d8038de8... Add auto adjust fees
 #  status               :string(255)      not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
