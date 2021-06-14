@@ -26,27 +26,29 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
 
     # Update all coin beneficiaries with blockchain_key
     Beneficiary.find_each(batch_size: 100) do |beneficiary|
-      beneficiary.update(blockchain_key: beneficiary.currency.blockchain_key)
+      beneficiary.update_columns(blockchain_key: beneficiary.currency.blockchain_key)
     end
 
     # Update all pending coin deposits with blockchain_key by wallet
     Deposit.find_each(batch_size: 100) do |deposit|
-      deposit.update(blockchain_key: deposit.currency.blockchain_key)
+      deposit.update_columns(blockchain_key: deposit.currency.blockchain_key)
     end
 
     # Update all pending coin withdraws with blockchain_key by wallet
     Withdraw.find_each(batch_size: 100) do |withdraw|
-      withdraw.update(blockchain_key: withdraw.currency.blockchain_key)
+      withdraw.update_columns(blockchain_key: withdraw.currency.blockchain_key)
     end
 
     add_column :payment_addresses, :blockchain_key, :string, after: :wallet_id
     # Update all payment address with blockchain_key by wallet
     PaymentAddress.find_each(batch_size: 100) do |payment_address|
-      payment.update(blockchain_key: payment_address.wallet.blockchain_key)
+      payment_address.update_columns(blockchain_key: payment_address.wallet.blockchain_key)
     end
 
     # Move currencies configs to blockchain currency
     Currency.find_each(batch_size: 10) do |currency|
+      currency_status = currency.visible? ? 'enabled' : 'disabled'
+
       BlockchainCurrency.create(
         currency_id: currency.id,
         blockchain_key: currency.blockchain_key,
@@ -60,7 +62,7 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
         deposit_enabled: currency.deposit_enabled,
         withdrawal_enabled: currency.withdrawal_enabled,
         base_factor: currency.base_factor,
-        status: currency.status,
+        status: currency_status,
         options: currency.options
       )
     end
@@ -109,8 +111,9 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
 
     Currency.find_each(batch_size: 10) do |currency|
       blockchain_currency = currency.blockchain_currencies[0]
+      blockchain_currency_status = blockchain_currency.status == 'enabled' ? true : false
 
-      currency.update(
+      currency.update_columns(
         blockchain_key: blockchain_currency.blockchain_key,
         deposit_fee: blockchain_currency.deposit_fee,
         min_deposit_amount: blockchain_currency.min_deposit_amount,
@@ -122,7 +125,7 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
         deposit_enabled: blockchain_currency.deposit_enabled,
         withdrawal_enabled: blockchain_currency.withdrawal_enabled,
         base_factor: blockchain_currency.base_factor,
-        visible: blockchain_currency.status,
+        visible: blockchain_currency_status,
         options: blockchain_currency.options
       )
     end
