@@ -115,7 +115,7 @@ class BlockchainCurrency < ApplicationRecord
   end
 
   def update_fees
-    market = Market.find_by(base_unit: currency.id, quote_unit: Peatio::App.config.plarform_currency)
+    market = Market.find_by(base_unit: currency.id, quote_unit: Peatio::App.config.platform_currency)
     ticker = Trade.market_ticker_from_influx(market.symbol) if market.present?
     price = ticker.present? ? ticker[:vwap].to_d : currency.price
 
