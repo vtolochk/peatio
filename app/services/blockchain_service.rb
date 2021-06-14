@@ -50,6 +50,7 @@ class BlockchainService
   def process_block(block_number)
     block = @adapter.fetch_block!(block_number)
     deposits = filter_deposit_txs(block)
+    binding.pry
     withdrawals = filter_withdrawals(block)
     process_pending_deposit_txs(deposits[:existing_deposits_blockchain_txs], deposits[:existing_deposits_db_txs])
 
@@ -133,6 +134,7 @@ class BlockchainService
   # if succeed change state to collected and change state of db_tx to succeed
   def process_pending_deposit_txs(block_txs, db_txs)
     db_txs.each do |db_tx|
+      binding.pry
       next unless db_tx.pending?
 
       block_tx = block_txs.find { |tx| tx if db_tx.txid == tx.hash }

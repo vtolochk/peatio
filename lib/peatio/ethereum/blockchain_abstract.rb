@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require 'pry-byebug'
+require 'pry'
 
 module Ethereum
   class BlockchainAbstract < Peatio::Blockchain::Abstract
@@ -68,6 +70,12 @@ module Ethereum
 
               # Check if the tx is from one of our wallets (to confirm withdrawals)
               if Wallet.withdraw.where(address: normalize_address(tx.fetch('from'))).present?
+                process_tx = true
+                break
+              end
+
+              # Check if the tx is from one of our payment_addresses (to confirm deposit collection)
+              if PaymentAddress.where(address: normalize_address(tx.fetch('from'))).present?
                 process_tx = true
                 break
               end
@@ -213,7 +221,8 @@ module Ethereum
         return build_invalid_erc20_transaction(txn_receipt)
       end
 
-      fee = txn_receipt.fetch('gas').hex * block_txn.fetch('gasPrice').hex
+
+      fee = txn_receipt.fetch('gasUsed').hex
 
       txn_receipt.fetch('logs').each_with_object([]) do |log, formatted_txs|
         next if log['blockHash'].blank? && log['blockNumber'].blank?

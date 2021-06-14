@@ -88,7 +88,7 @@ module Workers
         end
 
         transactions = WalletService.new(fee_wallet).deposit_collection_fees!(deposit, deposit.spread_to_transactions)
-        deposit.fee_process! if transactions.present?
+        deposit.confirm_fee_collection! if transactions.present?
         Rails.logger.warn { "The API accepted token deposit collection fee and assigned transaction ID: #{transactions.map(&:as_json)}." }
       end
     end

@@ -82,7 +82,7 @@ class Deposit < ApplicationRecord
     end
 
     event :confirm_deposit_collection do
-      transitions from: :processing, to: :collecting
+      transitions from: %i[processing, fee_processing], to: :collecting
     end
 
     event :confirm_fee_collection do
@@ -90,7 +90,7 @@ class Deposit < ApplicationRecord
     end
 
     event :fee_process do
-      transitions from: %i[accepted processing skipped fee_collecting], to: :fee_processing do
+      transitions from: %i[accepted skipped fee_collecting], to: :fee_processing do
         guard { currency.coin? }
       end
     end
