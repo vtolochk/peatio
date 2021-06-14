@@ -108,26 +108,25 @@ class BlockchainCurrency < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20210609094033
+# Schema version: 20210601111215
 #
 # Table name: blockchain_currencies
 #
-#  id                       :bigint           not null, primary key
-#  currency_id              :string(255)      not null
-#  blockchain_key           :string(255)
-#  deposit_fee              :decimal(32, 16)  default(0.0), not null
-#  min_deposit_amount       :decimal(32, 16)  default(0.0), not null
-#  min_collection_amount    :decimal(32, 16)  default(0.0), not null
-#  withdraw_fee             :decimal(32, 16)  default(0.0), not null
-#  min_withdraw_amount      :decimal(32, 16)  default(0.0), not null
-#  withdraw_limit_24h       :decimal(32, 16)  default(0.0), not null
-#  withdraw_limit_72h       :decimal(32, 16)  default(0.0), not null
-#  deposit_enabled          :boolean          default(TRUE), not null
-#  withdrawal_enabled       :boolean          default(TRUE), not null
-#  auto_update_fees_enabled :boolean          default(TRUE), not null
-#  base_factor              :bigint           default(1), not null
-#  status                   :string(32)       default("enabled"), not null
-#  options                  :json
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
+#  id                    :bigint           not null, primary key
+#  currency_id           :string(255)      not null
+#  blockchain_key        :string(255)
+#  deposit_fee           :decimal(32, 16)  default(0.0), not null
+#  min_deposit_amount    :decimal(32, 16)  default(0.0), not null
+#  min_collection_amount :decimal(32, 16)  default(0.0), not null
+#  withdraw_fee          :decimal(32, 16)  default(0.0), not null
+#  min_withdraw_amount   :decimal(32, 16)  default(0.0), not null
+#  withdraw_limit_24h    :decimal(32, 16)  default(0.0), not null
+#  withdraw_limit_72h    :decimal(32, 16)  default(0.0), not null
+#  deposit_enabled       :boolean          default(TRUE), not null
+#  withdrawal_enabled    :boolean          default(TRUE), not null
+#  base_factor           :bigint           default(1), not null
+#  status                :string(32)       default("enabled"), not null
+#  options               :json
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
 #

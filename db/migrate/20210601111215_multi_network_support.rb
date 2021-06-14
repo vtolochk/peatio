@@ -88,7 +88,7 @@ class MultiNetworkSupport < ActiveRecord::Migration[5.2]
     # Add new field to blockchain table
     add_column :blockchains, :description, :text, after: :height
     add_column :blockchains, :warning, :text, after: :description
-    add_column :blockchains, :protocol, :string, after: :warning
+    add_column :blockchains, :protocol, :string, null: false, after: :warning
   end
 
   def down

@@ -266,7 +266,7 @@ describe API::V2::Admin::Blockchains, type: :request do
     end
 
     it 'return error in case of not permitted ability' do
-      api_post '/api/v2/admin/blockchains/new', token: level_3_member_token, params: { key: 'test-blockchain', name: 'Test', client: 'geth', server: 'http://127.0.0.1', height: 123333, explorer_transaction: 'test', explorer_address: 'test', status: 'active', min_confirmations: 6, step: 2 }
+      api_post '/api/v2/admin/blockchains/new', token: level_3_member_token, params: { protocol: 'Test', key: 'test-blockchain', name: 'Test', client: 'geth', server: 'http://127.0.0.1', height: 123333, explorer_transaction: 'test', explorer_address: 'test', status: 'active', min_confirmations: 6, step: 2 }
       expect(response.code).to eq '403'
       expect(response).to include_api_error('admin.ability.not_permitted')
     end

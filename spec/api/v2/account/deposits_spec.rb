@@ -155,6 +155,7 @@ describe API::V2::Account::Deposits, type: :request do
       result = JSON.parse(response.body)
 
       expect(response.code).to eq '200'
+      expect(result['protocol']).to eq 'BEP-2'
       expect(result['amount']).to eq '111.0'
     end
 

@@ -96,7 +96,7 @@ ActiveRecord::Schema.define(version: 2021_06_01_111215) do
     t.bigint "height", null: false
     t.text "description"
     t.text "warning"
-    t.string "protocol"
+    t.string "protocol", null: false
     t.string "explorer_address"
     t.string "explorer_transaction"
     t.integer "min_confirmations", default: 6, null: false

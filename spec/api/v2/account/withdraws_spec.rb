@@ -159,6 +159,7 @@ describe API::V2::Account::Withdraws, type: :request do
       result = JSON.parse(response.body)
 
       expect(result.map { |x| x['id'] }).to eq ordered_withdraws.map(&:id)
+      expect(result.map { |x| x['protocol'] }).to eq ordered_withdraws.map(&:protocol)
     end
 
     it 'denies access to unverified member' do

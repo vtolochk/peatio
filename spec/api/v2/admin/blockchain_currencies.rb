@@ -159,7 +159,7 @@ describe API::V2::Admin::BlockchainCurrencies, type: :request do
 
 	describe 'POST blockchain_currencies/new' do
 		it 'create blockchain currency' do
-      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', blockchain_key: 'btc-testnet' }, token: token
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', blockchain_key: 'btc-testnet', protocol: 'BTC' }, token: token
       result = JSON.parse(response.body)
 
       expect(response).to be_successful
@@ -234,7 +234,7 @@ describe API::V2::Admin::BlockchainCurrencies, type: :request do
     end
 
     it 'creates currency with 1000 base_factor' do
-      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', blockchain_key: 'btc-testnet', base_factor: 1000 }, token: token
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', protocol: 'ERC20', blockchain_key: 'btc-testnet', base_factor: 1000 }, token: token
       result = JSON.parse(response.body)
 
       expect(response).to be_successful
@@ -250,7 +250,7 @@ describe API::V2::Admin::BlockchainCurrencies, type: :request do
     end
 
     it 'return error in case of not permitted ability' do
-      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eur', blockchain_key: 'btc-testnet' }, token: level_3_member_token
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eur', protocol: 'ERC20', blockchain_key: 'btc-testnet' }, token: level_3_member_token
 
       expect(response.code).to eq '403'
       expect(response).to include_api_error('admin.ability.not_permitted')

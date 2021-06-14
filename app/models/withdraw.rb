@@ -165,6 +165,8 @@ class Withdraw < ApplicationRecord
     end
   end
 
+  delegate :protocol, :warning, to: :blockchain
+
   class << self
     def sum_query
       'SELECT sum(w.sum * c.price) as sum FROM withdraws as w ' \
