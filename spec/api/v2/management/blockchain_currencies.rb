@@ -189,6 +189,25 @@ describe API::V2::Management::BlockchainCurrencies, type: :request do
 			expect(result['blockchain_key']).to eq 'btc-testnet'
     end
 
+    it 'create blockchain currency with parent' do
+			blockchain_currency_data.merge!(currency_id: 'trst', blockchain_key: 'btc-testnet', parent_id: 'eth')
+			request
+      result = JSON.parse(response.body)
+
+      expect(response).to be_successful
+      expect(result['currency_id']).to eq 'trst'
+      expect(result['parent_id']).to eq 'eth'
+			expect(result['blockchain_key']).to eq 'btc-testnet'
+    end
+
+    it 'validate parent_id param' do
+      blockchain_currency_data.merge!(currency_id: 'test', blockchain_key: 'btc-testnet', parent_id: 'test')
+      request
+
+      expect(response).to have_http_status 422
+      expect(response.body).to match(/management.blockchain_currency.parent_id_doesnt_exist/i)
+    end
+
 		it 'validate blockchain_key param' do
 			blockchain_currency_data.merge!(currency_id: 'eth', blockchain_key: 'test')
 			request

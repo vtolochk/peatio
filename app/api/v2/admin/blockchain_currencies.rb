@@ -139,6 +139,11 @@ module API
                      type: { value: Integer, message: 'admin.blockchain_currency.non_integer_subunits' },
                      values: { value: (0..18), message: 'admin.blockchain_currency.invalid_subunits' },
                      desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:subunits][:desc] }
+            given currency_id: ->(currency_id) { currency_id.present? && Currency.find_by(id: currency_id).coin? } do
+              optional :parent_id,
+                       values: { value: -> { Currency.coins_without_tokens.pluck(:id).map(&:to_s) }, message: 'admin.blockchain_currency.parent_id_doesnt_exist' },
+                       desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:parent_id][:desc] }
+            end
             mutually_exclusive :base_factor, :subunits, message: 'admin.blockchain_currency.one_of_base_factor_subunits_fields'
           end
           post '/new' do
@@ -176,6 +181,9 @@ module API
             requires :id,
                      type: Integer,
                      desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:id][:desc] }
+            optional :parent_id,
+                     values: { value: -> { Currency.coins_without_tokens.pluck(:id).map(&:to_s) }, message: 'admin.blockchain_currency.parent_id_doesnt_exist' },
+                     desc: -> { API::V2::Admin::Entities::BlockchainCurrency.documentation[:parent_id][:desc] }
           end
           post '/update' do
             admin_authorize! :update, ::BlockchainCurrency, params.except(:id)

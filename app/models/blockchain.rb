@@ -9,7 +9,7 @@ class Blockchain < ApplicationRecord
   has_many :blockchain_currencies, foreign_key: :blockchain_key, primary_key: :key
 
   validates :key, :name, :client, :protocol, :min_deposit_amount, :withdraw_fee, presence: true
-  validates :key, uniqueness: true
+  validates :key, :protocol, uniqueness: true
   validates :status, inclusion: { in: %w[active disabled] }
   validates :height,
             :min_confirmations,

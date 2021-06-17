@@ -160,13 +160,31 @@ describe API::V2::Admin::BlockchainCurrencies, type: :request do
 
 	describe 'POST blockchain_currencies/new' do
 		it 'create blockchain currency' do
-      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', blockchain_key: 'btc-testnet', protocol: 'BTC', auto_update_fees_enabled: false }, token: token
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'eth', blockchain_key: 'btc-testnet', protocol: 'BTC_T', auto_update_fees_enabled: false }, token: token
       result = JSON.parse(response.body)
 
       expect(response).to be_successful
       expect(result['currency_id']).to eq 'eth'
 			expect(result['blockchain_key']).to eq 'btc-testnet'
       expect(result['auto_update_fees_enabled']).to eq false
+    end
+
+    it 'create blockchain currency with parent_id' do
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'trst', parent_id: 'eth', blockchain_key: 'btc-testnet', protocol: 'BTC_T', auto_update_fees_enabled: false }, token: token
+      result = JSON.parse(response.body)
+
+      expect(response).to be_successful
+      expect(result['currency_id']).to eq 'trst'
+      expect(result['parent_id']).to eq 'eth'
+			expect(result['blockchain_key']).to eq 'btc-testnet'
+      expect(result['auto_update_fees_enabled']).to eq false
+    end
+
+    it 'validate parent_id param' do
+      api_post '/api/v2/admin/blockchain_currencies/new', params: { currency_id: 'trst', blockchain_key: 'btc-testnet', parent_id: 'eur'}, token: token
+
+      expect(response).to have_http_status 422
+      expect(response).to include_api_error('admin.blockchain_currency.parent_id_doesnt_exist')
     end
 
 		it 'validate blockchain_key param' do
