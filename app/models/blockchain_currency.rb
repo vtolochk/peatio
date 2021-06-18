@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 class BlockchainCurrency < ApplicationRecord
 
   # == Constants ============================================================
@@ -93,7 +92,7 @@ class BlockchainCurrency < ApplicationRecord
   end
 
   def blockchain
-    Rails.cache.fetch("#{currency_id}_blockchain", expires_in: 60) { Blockchain.find_by(key: blockchain_key) }
+    Rails.cache.fetch("#{currency_id}_#{blockchain_key}_blockchain", expires_in: 60) { Blockchain.find_by(key: blockchain_key) }
   end
 
   # subunit (or fractional monetary unit) - a monetary unit

@@ -21,6 +21,23 @@ FactoryBot.define do
       status                  { 'active' }
     end
 
+    trait 'eth-rinkeby-testnet' do
+      key                     { 'eth-rinkeby-testnet' }
+      name                    { 'Ethereum Rinkeby Testnet' }
+      client                  { 'geth' }
+      server                  { 'http://127.0.0.1:8545' }
+      height                  { 2500000 }
+      min_confirmations       { 6 }
+      explorer_address        { 'https://etherscan.io/address/#{address}' }
+      explorer_transaction    { 'https://etherscan.io/tx/#{txid}' }
+      warning                 { 'Reminder: For the safety of your funds, please confirm again that the network you wish to use is eth-rinkeby.' }
+      protocol                { 'Rinkeby-testnet' }
+      description             { 'Ethereum Rinkeby Testnet' }
+      collection_gas_speed    { 'standard' }
+      withdrawal_gas_speed    { 'standard' }
+      status                  { 'active' }
+    end
+
     trait 'eth-kovan' do
       key                     { 'eth-kovan' }
       name                    { 'Ethereum Kovan' }

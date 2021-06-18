@@ -42,6 +42,18 @@ FactoryBot.define do
       end
     end
 
+    trait :eth_testnet_network do
+			currency_id          { 'eth' }
+      blockchain_key       { 'eth-rinkeby-testnet' }
+      base_factor          { 1_000_000_000_000_000_000 }
+      withdraw_limit_24h   { 0.1 }
+      withdraw_limit_72h   { 1 }
+      withdraw_fee         { 0.025 }
+      options do
+        { gas_limit: 21_000 }
+      end
+    end
+
     trait :trst_network do
 			currency_id          { 'trst' }
       parent_id            { 'eth' }
