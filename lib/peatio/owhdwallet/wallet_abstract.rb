@@ -78,7 +78,6 @@ module OWHDWallet
         passphrase: wallet_secret
       })
 
-      binding.pry
       transaction.currency_id = native_currency_id if transaction.currency_id.blank?
       transaction.hash = response['tx']
       transaction.options = {}

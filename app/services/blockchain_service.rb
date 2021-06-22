@@ -50,7 +50,6 @@ class BlockchainService
   def process_block(block_number)
     block = @adapter.fetch_block!(block_number)
     deposits = filter_deposit_txs(block)
-    binding.pry
     withdrawals = filter_withdrawals(block)
     process_pending_deposit_txs(deposits[:existing_deposits_blockchain_txs], deposits[:existing_deposits_db_txs])
 
@@ -134,7 +133,6 @@ class BlockchainService
   # if succeed change state to collected and change state of db_tx to succeed
   def process_pending_deposit_txs(block_txs, db_txs)
     db_txs.each do |db_tx|
-      binding.pry
       next unless db_tx.pending?
 
       block_tx = block_txs.find { |tx| tx if db_tx.txid == tx.hash }
@@ -151,7 +149,7 @@ class BlockchainService
       db_tx.save!
 
       # BSC can return success only after fetch transaction
-      if block_tx.status == 'success'
+      if block_tx.success?
         db_tx.confirm!
 
         if deposit.fee_collecting? && db_tx.kind == 'tx_prebuild'
@@ -168,7 +166,7 @@ class BlockchainService
           deposit.dispatch! if deposit.spread.map{|t| t[:status]}.uniq.eql?(['succeed'])
         end
 
-      elsif block_tx.status == 'failed'
+      elsif block_tx.failed?
         db_tx.fail!
         deposit.err! 'Fee collection transaction failed' if db_tx.kind == 'tx_prebuild'
         deposit.err! 'Collection transaction failed' if db_tx.kind == 'tx'
