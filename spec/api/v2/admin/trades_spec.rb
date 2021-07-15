@@ -74,17 +74,17 @@ describe API::V2::Admin::Trades, type: :request do
       it 'first 5 trades ordered by id' do
         api_get'/api/v2/admin/trades', token: token, params: { limit: 5 }
         result = JSON.parse(response.body)
-        expected = trades[0...5]
+        expected = trades[0...6]
 
         expect(result.map { |t| t['id'] }).to match_array expected.map(&:id)
       end
 
-      it 'second 5 trades ordered by id' do
+      it 'empty trade ordered by id' do
         api_get'/api/v2/admin/trades', token: token, params: { limit: 5, page: 2 }
         result = JSON.parse(response.body)
-        expected = trades[5...10]
+        expected = []
 
-        expect(result.map { |t| t['id'] }).to match_array expected.map(&:id)
+        expect(result.map { |t| t['id'] }).to match_array expected
       end
     end
 
