@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_06_11_085637) do
+ActiveRecord::Schema.define(version: 2021_07_21_093857) do
 
   create_table "accounts", primary_key: ["currency_id", "member_id"], options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.bigint "member_id", null: false
@@ -250,7 +250,7 @@ ActiveRecord::Schema.define(version: 2021_06_11_085637) do
 
   create_table "members", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "uid", limit: 32, null: false
-    t.string "email", null: false
+    t.string "email"
     t.integer "level", null: false
     t.string "role", limit: 16, null: false
     t.string "group", limit: 32, default: "vip-0", null: false
@@ -460,6 +460,7 @@ ActiveRecord::Schema.define(version: 2021_06_11_085637) do
     t.string "address", null: false
     t.integer "kind", null: false
     t.string "gateway", limit: 20, default: "", null: false
+    t.json "plain_settings"
     t.string "settings_encrypted", limit: 1024
     t.json "balance"
     t.decimal "max_balance", precision: 32, scale: 16, default: "0.0", null: false
@@ -508,6 +509,7 @@ ActiveRecord::Schema.define(version: 2021_06_11_085637) do
     t.integer "transfer_type"
     t.string "tid", limit: 64, null: false, collation: "utf8_bin"
     t.string "rid", limit: 256, null: false
+    t.string "remote_id"
     t.string "note", limit: 256
     t.json "metadata"
     t.json "error"
