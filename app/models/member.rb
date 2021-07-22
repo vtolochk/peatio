@@ -167,6 +167,7 @@ class Member < ApplicationRecord
         m.role = params[:role]
         m.state = params[:state]
         m.level = params[:level]
+        m.beneficiaries_whitelisting = true if Peatio::App.force_beneficiaries_whitelisting
       end
       member.assign_attributes(params)
       member.save! if member.changed?

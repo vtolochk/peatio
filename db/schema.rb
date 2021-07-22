@@ -255,6 +255,7 @@ ActiveRecord::Schema.define(version: 2021_07_27_101029) do
     t.integer "level", null: false
     t.string "role", limit: 16, null: false
     t.string "group", limit: 32, default: "vip-0", null: false
+    t.boolean "beneficiaries_whitelisting"
     t.string "state", limit: 16, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

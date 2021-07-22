@@ -17,7 +17,7 @@ class Beneficiary < ApplicationRecord
   STATES_MAPPING = { pending: 0, active: 1, archived: 2, aml_processing: 3, aml_suspicious: 4 }.freeze
 
   STATES = %i[pending aml_processing aml_suspicious active archived].freeze
-  STATES_AVAILABLE_FOR_MEMBER = %i[pending active]
+  STATES_AVAILABLE_FOR_MEMBER = %i[pending active disabled]
 
   PIN_LENGTH  = 6
   PIN_RANGE   = 10**5..10**Beneficiary::PIN_LENGTH
@@ -48,6 +48,10 @@ class Beneficiary < ApplicationRecord
       else
         transitions from: :pending, to: :active, guard: :valid_pin?
       end
+    end
+
+    event :disable do
+      transitions from: :active, to: :disbled
     end
 
     event :enable do
