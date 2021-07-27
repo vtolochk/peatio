@@ -51,7 +51,7 @@ class Beneficiary < ApplicationRecord
     end
 
     event :disable do
-      transitions from: :active, to: :disbled
+      transitions from: :active, to: :disabled
     end
 
     event :enable do

@@ -83,6 +83,16 @@ module API
         )
 
         expose(
+          :withdrawals,
+          documentation: {
+            desc: 'Withdrawals count for given beneficiary',
+            type: Integer
+          }
+        ) do |beneficiary, options|
+          Withdraw.where(member: options[:current_user], beneficiary: beneficiary).count if options[:current_user].present?
+        end
+
+        expose(
             :sent_at,
             format_with: :iso8601,
             documentation: {

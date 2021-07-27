@@ -47,7 +47,7 @@ module API
                 q.where!(blockchain_key: params[:blockchain_key]) if params[:blockchain_key].present?
               end
               .yield_self do |b|
-                present paginate(b), with: API::V2::Entities::Beneficiary
+                present paginate(b), with: API::V2::Entities::Beneficiary, current_user: current_user
               end
           end
 
