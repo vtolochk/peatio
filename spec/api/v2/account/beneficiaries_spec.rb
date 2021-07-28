@@ -230,6 +230,8 @@ describe API::V2::Account::Beneficiaries, 'GET /:id', type: :request do
 end
 
 describe API::V2::Account::Beneficiaries, 'POST', type: :request do
+  before { Vault::TOTP.stubs(:validate?).returns(true) }
+
   let(:endpoint) { '/api/v2/account/beneficiaries' }
 
   let(:member) { create(:member, :level_3) }

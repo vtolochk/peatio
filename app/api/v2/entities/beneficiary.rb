@@ -89,7 +89,7 @@ module API
             type: Integer
           }
         ) do |beneficiary, options|
-          Withdraw.where(member: options[:current_user], beneficiary: beneficiary).count if options[:current_user].present?
+          ::Withdraw.where(member: options[:current_user], beneficiary: beneficiary).count if options[:current_user].present?
         end
 
         expose(

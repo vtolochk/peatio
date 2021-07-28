@@ -95,7 +95,13 @@ module API
                    type: String,
                    values: { value: ->(v) { v.size <= 256 }, message: 'account.withdraw.too_long_note' },
                    desc: 'Optional user metadata to be applied to the transaction. Used to tag transactions with memorable comments.'
-          exactly_one_of :beneficiary_id, :rid
+          exactly_one_of :beneficiary_id, :rid, message: 'account.withdraw.missing_rid_or_beneficiary_id'
+          given rid: ->(rid) { rid.present? } do
+            requires :blockchain_key,
+                     values: { value: -> { ::Blockchain.pluck(:key) }, message: 'account.withdraw.blockchain_key_doesnt_exist' },
+                     allow_blank: false,
+                     desc: 'Blockchain key of the requested withdraw'
+          end
         end
         post '/withdraws' do
           user_authorize! :create, ::Withdraw
@@ -106,22 +112,8 @@ module API
 
           currency = Currency.find(params[:currency])
 
-          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
-                                                            blockchain_key: beneficiary.blockchain_key)
-          unless blockchain_currency.withdrawal_enabled?
-            error!({ errors: ['account.currency.withdrawal_disabled'] }, 422)
-          end
-
-          withdraw = "withdraws/#{currency.type}".camelize.constantize.new \
-            beneficiary: beneficiary,
-            sum: params[:amount],
-            member: current_user,
-            currency: currency,
-            note: params[:note],
-            blockchain_key: beneficiary.blockchain_key
-
           if current_user.beneficiaries_whitelisting
-            error!({ errors: ['account.beneficiary.missing_beneficiary_id'] }, 422) if params[:beneficiary_id].blank?
+            error!({ errors: ['account.withdraw.missing_beneficiary_id'] }, 422) if params[:beneficiary_id].blank?
 
             beneficiary = current_user.beneficiaries
                                       .available_to_member
@@ -132,11 +124,32 @@ module API
             elsif !beneficiary.active?
               error!({ errors: ['account.beneficiary.invalid_state_for_withdrawal'] }, 422)
             end
+          else
+            error!({ errors: ['account.withdraw.missing_rid'] }, 422) if params[:rid].blank?
+          end
 
+          blockchain_key = if params[:beneficiary].present?
+                             beneficiary.blockchain_key
+                           else
+                             params[:blockchain_key]
+                           end
+
+          blockchain_currency = BlockchainCurrency.find_by!(currency_id: params[:currency],
+                                                            blockchain_key: blockchain_key)
+          unless blockchain_currency.withdrawal_enabled?
+            error!({ errors: ['account.currency.withdrawal_disabled'] }, 422)
+          end
+
+          withdraw = "withdraws/#{currency.type}".camelize.constantize.new \
+            sum: params[:amount],
+            member: current_user,
+            currency: currency,
+            note: params[:note],
+            blockchain_key: beneficiary.blockchain_key
+
+          if beneficiary.present?
             withdraw.beneficiary = beneficiary
           else
-            error!({ errors: ['account.beneficiary.missing_rid'] }, 422) if params[:rid].blank?
-
             withdraw.rid = params[:rid]
           end
 
