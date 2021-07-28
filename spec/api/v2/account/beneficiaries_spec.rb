@@ -243,6 +243,7 @@ describe API::V2::Account::Beneficiaries, 'POST', type: :request do
       blockchain_key: 'btc-testnet',
       name: 'Personal Bitcoin wallet',
       description: 'Multisignature Bitcoin Wallet',
+      otp: 123456,
       data: {
         address: Faker::Blockchain::Bitcoin.address
       }
@@ -264,6 +265,7 @@ describe API::V2::Account::Beneficiaries, 'POST', type: :request do
     context 'unauthorized' do
       before do
         Ability.stubs(:user_permissions).returns([])
+        Vault::TOTP.stubs(:validate?).returns(true)
       end
 
       it 'renders unauthorized error' do
@@ -448,7 +450,8 @@ describe API::V2::Account::Beneficiaries, 'POST', type: :request do
           currency: :usd,
           name: Faker::Bank.name,
           description: Faker::Company.catch_phrase,
-          data: generate(:fiat_beneficiary_data)
+          data: generate(:fiat_beneficiary_data),
+          otp: 123456
         }
       end
 

@@ -63,6 +63,7 @@ ActiveRecord::Schema.define(version: 2021_07_28_190514) do
     t.string "data_encrypted", limit: 1024
     t.integer "pin", limit: 3, null: false, unsigned: true
     t.datetime "sent_at"
+    t.datetime "expire_at"
     t.integer "state", limit: 1, default: 0, null: false, unsigned: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -251,7 +252,7 @@ ActiveRecord::Schema.define(version: 2021_07_28_190514) do
 
   create_table "members", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.string "uid", limit: 32, null: false
-    t.string "email", null: false
+    t.string "email"
     t.integer "level", null: false
     t.string "role", limit: 16, null: false
     t.string "group", limit: 32, default: "vip-0", null: false

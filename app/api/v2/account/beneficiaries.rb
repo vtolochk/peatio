@@ -96,6 +96,10 @@ module API
                      type: { value: JSON, message: 'account.beneficiary.non_json_data' },
                      allow_blank: false,
                      desc: 'Beneficiary data in JSON format'
+            requires :otp,
+                     type: { value: Integer, message: 'account.beneficiary.non_integer_otp' },
+                     allow_blank: false,
+                     desc: 'OTP to perform action'
           end
           post do
             user_authorize! :create, ::Beneficiary
@@ -130,7 +134,7 @@ module API
 
             present current_user
                       .beneficiaries
-                      .create!(declared_params),
+                      .create!(declared_params.except(:otp)),
                     with: API::V2::Entities::Beneficiary
           rescue ActiveRecord::RecordInvalid => e
             report_exception(e)
@@ -188,6 +192,10 @@ module API
               error!({ errors: ['account.beneficiary.cant_activate'] }, 422)
             end
 
+            if beneficiary.expire_at < Time.now
+              error!({ errors: ['account.beneficiary.pin_expired'] }, 422)
+            end
+
             if beneficiary.activate!(params[:pin])
               present beneficiary, with: API::V2::Entities::Beneficiary
             else
@@ -206,11 +214,15 @@ module API
                      desc: 'Beneficiary state'
           end
           put ':id' do
-            user_authorize! :destroy, ::Beneficiary
+            user_authorize! :update, ::Beneficiary
 
             beneficiary = current_user.beneficiaries
                                       .available_to_member
                                       .find_by!(id: params[:id])
+
+            unless Vault::TOTP.validate?(current_user.uid, params[:otp])
+              error!({ errors: ['account.withdraw.invalid_otp'] }, 422)
+            end
 
             if beneficiary.update(state: params[:state])
               present beneficiary, with: API::V2::Entities::Beneficiary

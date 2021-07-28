@@ -13,6 +13,7 @@ module API
                   with: API::V2::Entities::Market
           present :withdraw_limits, Rails.cache.fetch(:public_withdraw_limits, expires_in: 600) { ::WithdrawLimit.all },
                   with: API::V2::Entities::WithdrawLimit
+          present :force_beneficiaries_whitelisting, Peatio::App.config.force_beneficiaries_whitelisting
         end
       end
     end

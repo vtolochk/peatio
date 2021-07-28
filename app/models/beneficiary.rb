@@ -112,6 +112,8 @@ class Beneficiary < ApplicationRecord
 
     # Generate Beneficiary Pin
     self.pin ||= self.class.generate_pin
+    # Set expire_at (Time.now + 5 min)
+    self.expire_at = Time.now + 300
     # Record time when we send event to Event API
     self.sent_at = Time.now
   end
@@ -171,7 +173,7 @@ class Beneficiary < ApplicationRecord
   end
 
   def regenerate_pin!
-    update(pin: self.class.generate_pin, sent_at: Time.now)
+    update(pin: self.class.generate_pin, sent_at: Time.now, expire_at: Time.now + 300)
   end
 
   def masked_account_number
@@ -200,7 +202,7 @@ class Beneficiary < ApplicationRecord
 end
 
 # == Schema Information
-# Schema version: 20210609094033
+# Schema version: 20210728190514
 #
 # Table name: beneficiaries
 #
@@ -213,6 +215,7 @@ end
 #  data_encrypted :string(1024)
 #  pin            :integer          unsigned, not null
 #  sent_at        :datetime
+#  expire_at      :datetime
 #  state          :integer          default("pending"), unsigned, not null
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
