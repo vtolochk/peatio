@@ -38,6 +38,19 @@ currencies:
     withdraw_fee:           0
     position:               1
     options:                {}
+
+wallets:
+  - max_balance: 10
+    blockchain_key: prt-kovan
+    gateway: parity
+    address: changeme
+    status: disabled
+    name: test-3
+    kind: deposit
+    currencies: []
+    settings:
+      uri: http://parity:8545
+      secret: changeme
 ```
 
 
@@ -56,6 +69,26 @@ Example of json configuration file
       "min_confirmations": 6,
       "status": "disabled"
     }
+  ],
+  "currencies": [
+      {
+      "id": "usd",
+      "name": "USD",
+      "type": "fiat",
+      "precision": "2",
+      "base_factor": "100",
+      "visible": "true",
+      "deposit_enabled": "true",
+      "withdrawal_enabled": "true",
+      "min_deposit_amount": "0",
+      "min_collection_amount": "0",
+      "withdraw_limit_24h": "100",
+      "withdraw_limit_72h": "200",
+      "deposit_fee": "0",
+      "withdraw_fee": "0",
+      "position": "1",
+      "options": {}
+      }
   ],
   "wallets": [
     {
@@ -79,9 +112,9 @@ Example of json configuration file
 }
 ```
 
-2. Go to Tower in Settings Tab (blockchains or wallets configuration) or Exchange Tab (currencies configuration) -> find Import Button in the panel -> load json/yaml configuration file -> click Submit button.
+2. (In development) Go to Tower in Settings Tab (blockchains or wallets configuration) or Exchange Tab (currencies configuration) -> find Import Button in the panel -> load json/yaml configuration file -> click Submit button.
 
-Also you can use directly Admin API with POST request to `api/v2/peatio/admin/import_configs`
+2.1 You can use directly Admin API with POST request to `api/v2/peatio/admin/import_configs`and send your configuration under parameter named `file`.
 
 Example with curl:
 
@@ -96,3 +129,5 @@ curl -X POST -F 'file=@spec/resources/import_configs/data.json' 'https://opendax
 2. If currency/blockchain/wallet exists in peatio DB, system will skip this entity.
 
 3. If there is some error during currency/blockchain/wallet creation, system will skip this entity and process next one.
+
+4. (In development) Version 3.0 Peatio allows one wallet to have multiple currencies, however, the configuration file is not supporting seeding wallets with currencies, they have to be added manually.
