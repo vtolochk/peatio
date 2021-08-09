@@ -15,7 +15,11 @@ RSpec.describe API::V2::ImportConfigsHelper do
   end
 
   it 'create new wallet' do
-    expect { import_configs }.to change { Wallet.count }.by(1)
+    expect { import_configs }.to change { Wallet.count }.by(2)
   end
 
+  it 'create new market' do
+    Engine.create!(name: "peatio-default-engine", driver: 'peatio')
+    expect { import_configs }.to change { Market.count }.by(1)
+  end
 end
