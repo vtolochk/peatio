@@ -1,6 +1,6 @@
 # Peatio Import Configuration API
 
-This doc describes how you can import configuration for currencies/wallets/blockchains using Admin API
+This doc describes how you can import configuration for currencies/wallets/blockchains/markets using Admin API
 
 ### Example for configuration
 
@@ -38,6 +38,20 @@ currencies:
     withdraw_fee:           0
     position:               1
     options:                {}
+
+  markets:
+  - id:                btcusd
+    base_unit:         btc
+    quote_unit:        usd
+    engine_name:       peatio-default-engine
+    amount_precision:  4
+    price_precision:   4
+    min_price:         0.0001
+    max_price:         0.0
+    min_amount:        0.0001
+    position:          100
+    state:             enabled
+    data:              {}
 ```
 
 
@@ -75,11 +89,27 @@ Example of json configuration file
         "uri": "http://127.0.0.1:8545"
       }
     }
+  ],
+  "markets": [
+    {
+      "id": "btctrst",
+      "base_unit": "btc",
+      "quote_unit": "trst",
+      "engine_name": "peatio-default-engine",
+      "amount_precision": 4,
+      "price_precision": 4,
+      "min_price": 0.0001,
+      "max_price": 0.0,
+      "min_amount": 0.0001,
+      "position": 100,
+      "state": "enabled",
+      "data": {}
+    }
   ]
 }
 ```
 
-2. Go to Tower in Settings Tab (blockchains or wallets configuration) or Exchange Tab (currencies configuration) -> find Import Button in the panel -> load json/yaml configuration file -> click Submit button.
+2. Go to Tower in Settings Tab (blockchains or wallets configuration) or Exchange Tab (currencies or markets configuration) -> find Import Button in the panel -> load json/yaml configuration file -> click Submit button.
 
 Also you can use directly Admin API with POST request to `api/v2/peatio/admin/import_configs`
 
