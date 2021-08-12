@@ -18,9 +18,11 @@ module API
       def process_generic_event(request)
         Wallet.active_retired.where(kind: :deposit, gateway: request.params[:adapter]).each do |w|
           service = w.service
+          pp w
           next unless service.adapter.respond_to?(:trigger_webhook_event)
-
+          pp "here"
           transactions = service.trigger_webhook_event(request)
+          pp transactions
           next unless transactions.present?
 
           # Process all deposit transactions

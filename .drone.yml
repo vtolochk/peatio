@@ -366,16 +366,16 @@ steps:
     - BUNDLE_GEMFILE=/sdk/Gemfile bundle exec rake --rakefile=/sdk/Rakefile ci:prebuild
     - bin/genversion
 
-# Build and push docker image using ".tags" file.
-- name: docker-build-and-push
-  image: plugins/docker
-  settings:
-    username:
-      from_secret: quay_username
-    password:
-      from_secret: quay_password
-    repo: quay.io/openware/peatio
-    registry: quay.io
+# # Build and push docker image using ".tags" file.
+# - name: docker-build-and-push
+#   image: plugins/docker
+#   settings:
+#     username:
+#       from_secret: quay_username
+#     password:
+#       from_secret: quay_password
+#     repo: quay.io/openware/peatio
+#     registry: quay.io
 
 # Redeploy on master.devkube.com
 - name: devkube-redeploy
@@ -424,7 +424,7 @@ steps:
   environment:
     SERVER: https://ci.openware.work
     REPO: openware/assembly-line
-    BRANCH: master
+    BRANCH: fix/webhook-debug
     COMPONENT: peatio
     DRONE_TOKEN:
       from_secret: drone_token
@@ -436,6 +436,7 @@ steps:
     branch:
       - master
       - "*-stable"
+      - "fix/*"
 
 trigger:
   event:
