@@ -55,6 +55,41 @@
       },
       "blockchain_key": "btc-testnet",
       "status": "active"
+    },
+    {
+      "name": "Ethereum Deposit Wallet2",
+      "kind": "deposit",
+      "address": "0x2b9fBC10EbAeEc28a8Fc10069C0BC29E45eBEB9C",
+      "gateway": "geth",
+      "max_balance": "1000.0",
+      "balance": null,
+      "plain_settings": {
+        "external_wallet_id": 1
+      },
+      "settings": {
+        "uri": "http://parity:8545",
+        "secret": "changeme"
+      },
+      "blockchain_key": "eth-rinkeby",
+      "currency_ids": "eth,trst",
+      "status": "active"
+    }
+  ],
+  "markets": [
+    {
+      "id": "btctrst",
+      "base_unit": "btc",
+      "quote_unit": "trst",
+      "engine_name": "peatio-default-engine",
+      "amount_precision": 4,
+      "price_precision": 4,
+      "min_price": 0.0001,
+      "max_price": 0.0,
+      "min_amount": 0.0001,
+      "position": 100,
+      "state": "enabled",
+      "data": {
+      }
     }
   ]
 }
