@@ -105,6 +105,45 @@ Example of json configuration file
       "state": "enabled",
       "data": {}
     }
+  ],
+  "currencies": [
+    {
+      "id": "btc1",
+      "name": "Bitcoin1",
+      "description": null,
+      "homepage": null,
+      "price": "1.0",
+      "type": "coin",
+      "precision": 8,
+      "position": 2
+    },
+    {
+      "id": "eth1",
+      "name": "Ethereum1",
+      "type": "coin",
+      "status": "enabled",
+      "description": null,
+      "homepage": null,
+      "price": "1.0",
+      "precision": 8,
+      "position": 3,
+      "networks": [
+        {
+          "blockchain_key": "eth-rinkeby",
+          "base_factor": 1000000000000000000,
+          "options": {
+            "gas_limit": 21000
+          }
+        },
+        {
+          "blockchain_key": "eth-kovan",
+          "base_factor": 1000000000000000000,
+          "options": {
+            "gas_limit": 21000
+          }
+        }
+      ]
+    }
   ]
 }
 ```
