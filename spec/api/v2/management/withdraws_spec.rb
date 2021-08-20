@@ -508,6 +508,48 @@ describe API::V2::Management::Withdraws, type: :request do
         end
       end
 
+      context 'action: :review' do
+        before { data[:action] = :review }
+
+        it 'sets under_review state for prepared withdraws' do
+          expect(record.aasm_state).to eq 'prepared'
+          expect(account.reload.balance).to eq balance
+          expect(account.reload.locked).to eq 0
+          request
+          expect(response).to have_http_status(200)
+          record = Withdraw.find_by_tid!(JSON.parse(response.body).fetch('tid'))
+          expect(record.aasm_state).to eq 'under_review'
+          expect(record.account.balance).to eq (balance - amount)
+          expect(record.account.locked).to eq amount
+        end
+
+        it 'sets under_review state for accepted withdraws' do
+          record.accept!
+          expect(record.aasm_state).to eq 'accepted'
+          expect(account.reload.balance).to eq (balance - amount)
+          expect(account.reload.locked).to eq amount
+          request
+          expect(response).to have_http_status(200)
+          record = Withdraw.find_by_tid!(JSON.parse(response.body).fetch('tid'))
+          expect(record.aasm_state).to eq 'under_review'
+          expect(record.account.balance).to eq (balance - amount)
+          expect(record.account.locked).to eq amount
+        end
+
+        it 'sets under_review state for accepted withdraws' do
+          record.accept!
+          expect(record.aasm_state).to eq 'accepted'
+          expect(account.reload.balance).to eq (balance - amount)
+          expect(account.reload.locked).to eq amount
+          request
+          expect(response).to have_http_status(200)
+          record = Withdraw.find_by_tid!(JSON.parse(response.body).fetch('tid'))
+          expect(record.aasm_state).to eq 'under_review'
+          expect(record.account.balance).to eq (balance - amount)
+          expect(record.account.locked).to eq amount
+        end
+      end
+
       context 'action: :success' do
         before { data[:action] = :success }
 
