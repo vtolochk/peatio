@@ -156,6 +156,7 @@ module API
           @settings[:scope] = :write_withdraws
           detail '«process» – system will lock the money, check for suspected activity, validate recipient address, and initiate the processing of the withdraw. ' \
                 '«cancel»  – system will mark withdraw as «canceled», and unlock the money.' \
+                '«reject»  – system will mark withdraw as «rejected», and unlock the money.' \
                 '«review»  – system will mark withdraw as «under_review», and lock the money.' \
                 '«success»  – system will mark withdraw as «succeed», and subtract the money from the account. (works only with fiat)'
           success API::V2::Management::Entities::Withdraw
