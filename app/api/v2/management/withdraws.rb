@@ -24,6 +24,8 @@ module API
                   end
                 when 'cancel'
                   withdraw.cancel!
+                when 'reject'
+                  withdraw.reject!
                 when 'success'
                   withdraw.success!
               end
@@ -160,7 +162,7 @@ module API
         end
         params do
           requires :tid,    type: String, desc: 'The shared transaction ID.'
-          requires :action, type: String, values: %w[process cancel review success], desc: 'The action to perform.'
+          requires :action, type: String, values: %w[process cancel reject review success], desc: 'The action to perform.'
         end
         put '/withdraws/action' do
           record = Withdraw.find_by!(params.slice(:tid))
