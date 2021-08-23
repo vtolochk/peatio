@@ -97,7 +97,7 @@ module API
           requires :currency,       type: String, values: -> { Currency.codes(bothcase: true) }, desc: 'The currency code.'
           requires :amount,         type: BigDecimal, desc: 'The amount to withdraw.'
           optional :note,           type: String, desc: 'The note for withdraw.'
-          optional :action,         type: String, values: %w[process review success], desc: 'The action to perform.'
+          optional :action,         type: String, values: %w[process review], desc: 'The action to perform.'
           optional :transfer_type,  type: String,
                                     values: { value: -> { Withdraw::TRANSFER_TYPES.keys }, message: 'account.withdraw.transfer_type_not_in_list' },
                                     desc: -> { API::V2::Admin::Entities::Withdraw.documentation[:transfer_type][:desc] }
